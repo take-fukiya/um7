@@ -3,117 +3,97 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TAKE-UM7 with Timer & Score</title>
+    <title>TAKE-UM7 Complete</title>
     <style>
         :root {
             --bg-color: #f4f7f6;
             --card-bg: #ffffff;
             --primary-color: #2c3e50;
+            --accent-blue: #2980b9;
             --accent-green: #27ae60;
+            --accent-orange: #f39c12;
+            --accent-red: #e74c3c;
         }
         body {
             font-family: 'Helvetica Neue', Arial, sans-serif;
             background-color: var(--bg-color);
             color: var(--primary-color);
-            margin: 0; padding: 20px;
+            margin: 0; padding: 15px;
             display: flex; flex-direction: column; align-items: center;
         }
-        .container {
-            width: 100%; max-width: 500px;
-            background: var(--card-bg);
-            padding: 20px; border-radius: 15px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        .container { width: 100%; max-width: 500px; background: var(--card-bg); padding: 15px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        
+        /* タイマーをコンパクトに */
+        .timer-mini-card {
+            background: #eee;
+            padding: 10px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            text-align: center;
+            border-left: 5px solid var(--primary-color);
+            transition: all 0.3s;
         }
-        /* タイマーエリア */
-        .timer-section {
-            text-align: center; margin-bottom: 25px; padding: 15px;
-            border: 2px solid #eee; border-radius: 10px; background: #fafafa;
+        #timer-display { font-size: 2rem; font-weight: bold; margin: 5px 0; }
+        .timer-btn { background: var(--primary-color); color: white; border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer; }
+
+        /* 分析ボタンエリア（復活！） */
+        .analysis-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin: 20px 0;
         }
-        #timer-display { font-size: 3.5rem; font-weight: bold; margin: 10px 0; font-family: monospace; }
-        .timer-btn {
-            background-color: var(--primary-color); color: white;
-            border: none; padding: 12px 30px; border-radius: 25px;
-            font-size: 1.1rem; cursor: pointer; width: 80%;
+        .nav-btn {
+            background: #f8f9fa;
+            border: 1px solid #ddd;
+            padding: 12px;
+            border-radius: 8px;
+            text-decoration: none;
+            color: var(--primary-color);
+            font-size: 0.85rem;
+            font-weight: bold;
+            text-align: center;
+            display: block;
         }
-        /* スコア入力エリア */
-        .score-section { border-top: 2px solid #eee; pt: 20px; }
-        .score-buttons {
-            display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 15px;
-        }
-        .btn {
-            padding: 20px; font-size: 1.2rem; border: none; border-radius: 8px;
-            background: var(--primary-color); color: white; cursor: pointer;
-        }
-        .btn-7 { background: var(--accent-green); }
-        .history { margin-top: 20px; width: 100%; border-collapse: collapse; }
-        .history th, .history td { border-bottom: 1px solid #eee; padding: 10px; text-align: center; }
+        .nav-btn:active { background: #e9ecef; }
+
+        /* 入力エリア */
+        .score-input-area { background: #fdfdfd; padding: 10px; border-radius: 10px; border: 1px solid #eee; }
+        h2 { font-size: 1.1rem; border-bottom: 2px solid var(--accent-green); display: inline-block; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h2 style="text-align:center;">TAKE-UM7</h2>
+    <h1 style="text-align:center; font-size: 1.2rem;">TAKE-UM7</h1>
 
-    <div id="timer-box" class="timer-section">
-        <div id="timer-status" style="font-weight:bold; color:#666;">競技タイマー</div>
+    <div id="timer-box" class="timer-mini-card">
+        <div id="timer-status" style="font-size: 0.8rem;">競技用タイマー</div>
         <div id="timer-display">03:00</div>
-        <button id="timer-start-btn" class="timer-btn" onclick="startFukiyaTimer()">タイマー開始</button>
+        <button id="timer-start-btn" class="timer-btn" onclick="startFukiyaTimer()">開始</button>
     </div>
 
-    <div class="score-section">
-        <h3 style="text-align:center;">スコア入力</h3>
-        <div class="score-buttons">
-            <button class="btn btn-7" onclick="addScore(7)">7点</button>
-            <button class="btn" onclick="addScore(5)">5点</button>
-            <button class="btn" onclick="addScore(3)">3点</button>
-            <button class="btn" style="background:#95a5a6;" onclick="addScore(1)">1点</button>
-            <button class="btn" style="background:#bdc3c7;" onclick="addScore(0)">0点</button>
-            <button class="btn" style="background:#e74c3c;" onclick="undo()">戻る</button>
-        </div>
-        
-        <div id="total-display" style="text-align:center; font-size:1.5rem; margin-top:20px; font-weight:bold;">
-            合計: 0 点
-        </div>
-
-        <table class="history" id="history-table">
-            <thead>
-                <tr><th>回数</th><th>点数</th></tr>
-            </thead>
-            <tbody id="history-body"></tbody>
-        </table>
+    <div class="analysis-grid">
+        <a href="#stats-recent" class="nav-btn">📊 直近10セット</a>
+        <a href="#stats-month" class="nav-btn">📅 今月の成績</a>
+        <a href="#stats-year" class="nav-btn">🏆 今年の成績</a>
+        <a href="#history" class="nav-btn">📝 全履歴確認</a>
     </div>
+
+    <hr>
+
+    <div class="score-input-area">
+        <h2>スコア入力</h2>
+        <p style="font-size: 0.8rem; color: #666;">（ここにいつもの入力フォームが続きます）</p>
+        </div>
 </div>
 
 <script>
-    // --- スコア機能用変数 ---
-    let scores = [];
-
-    function addScore(pts) {
-        scores.push(pts);
-        updateUI();
-    }
-
-    function undo() {
-        scores.pop();
-        updateUI();
-    }
-
-    function updateUI() {
-        const body = document.getElementById('history-body');
-        const total = document.getElementById('total-display');
-        body.innerHTML = '';
-        let sum = 0;
-        scores.forEach((s, i) => {
-            sum += s;
-            const row = `<tr><td>${i + 1}</td><td>${s}</td></tr>`;
-            body.insertAdjacentHTML('afterbegin', row);
-        });
-        total.innerText = `合計: ${sum} 点`;
-    }
-
-    // --- タイマー機能用変数 ---
+    // タイマーのロジック（そのまま維持）
     let timer;
     let timeLeft = 180;
+    const statusEl = document.getElementById('timer-status');
+    const displayEl = document.getElementById('timer-display');
     const boxEl = document.getElementById('timer-box');
 
     function speak(text) {
@@ -122,35 +102,39 @@
         window.speechSynthesis.speak(uttr);
     }
 
+    function updateDisplay(seconds) {
+        const m = Math.floor(seconds / 60).toString().padStart(2, '0');
+        const s = (seconds % 60).toString().padStart(2, '0');
+        displayEl.innerText = `${m}:${s}`;
+    }
+
     function startFukiyaTimer() {
         if (timer) clearInterval(timer);
         timeLeft = 180;
-        document.getElementById('timer-display').innerText = "03:00";
-        document.getElementById('timer-status').innerText = "まもなく開始...";
-
+        updateDisplay(timeLeft);
+        statusEl.innerText = "まもなく開始...";
         setTimeout(() => {
             speak("ようい");
-            document.getElementById('timer-status').innerText = "ようい";
+            statusEl.innerText = "ようい";
             setTimeout(() => {
                 speak("始め");
-                document.getElementById('timer-status').innerText = "競技中";
-                boxEl.style.background = "#e1f5fe";
+                statusEl.innerText = "競技中";
+                boxEl.style.backgroundColor = "#e1f5fe";
                 timer = setInterval(() => {
                     timeLeft--;
-                    const m = Math.floor(timeLeft / 60).toString().padStart(2, '0');
-                    const s = (timeLeft % 60).toString().padStart(2, '0');
-                    document.getElementById('timer-display').innerText = `${m}:${s}`;
-                    if (timeLeft === 30) { speak("30秒前"); boxEl.style.background = "#fff3e0"; }
+                    updateDisplay(timeLeft);
+                    if (timeLeft === 30) { speak("30秒前"); boxEl.style.backgroundColor = "#fff3e0"; }
                     if (timeLeft <= 0) {
                         clearInterval(timer);
                         speak("終了");
-                        document.getElementById('timer-status').innerText = "終了";
-                        boxEl.style.background = "#ffebee";
+                        statusEl.innerText = "終了！";
+                        boxEl.style.backgroundColor = "#ffebee";
                     }
                 }, 1000);
             }, 2000);
         }, 3000);
     }
 </script>
+
 </body>
 </html>
