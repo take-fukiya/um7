@@ -5,50 +5,43 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>TAKE-UM7 氣</title>
     <style>
-        body { font-family: sans-serif; background-color: #f0f7ff; color: #333; margin: 0; padding: 10px; display: flex; flex-direction: column; align-items: center; }
+        body { font-family: sans-serif; background-color: #f8faff; color: #333; margin: 0; padding: 10px; display: flex; flex-direction: column; align-items: center; }
         .container { width: 100%; max-width: 480px; }
-        h1 { color: #0056b3; text-align: center; font-size: 1.8rem; margin: 10px 0; }
         
-        /* タイマーエリア（大きく、見やすく） */
-        .timer-card { background: #fff; border: 2px solid #2c3e50; border-radius: 15px; padding: 20px; text-align: center; margin-bottom: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
-        .timer-display { font-size: 5rem; font-weight: bold; font-family: monospace; margin: 10px 0; color: #1a1a1a; }
-        .btn-start { background: #2c3e50; color: white; border: none; padding: 15px 30px; border-radius: 8px; font-size: 1.2rem; font-weight: bold; cursor: pointer; width: 60%; }
-        .btn-reset { background: #eee; border: 1px solid #ccc; padding: 15px 20px; border-radius: 8px; margin-left: 10px; }
+        /* タイマーエリア */
+        .timer-card { background: #fff; border: 2px solid #2c3e50; border-radius: 12px; padding: 15px; margin-bottom: 15px; display: flex; align-items: center; gap: 10px; }
+        .timer-main { flex: 2; background: #2c3e50; color: white; padding: 10px; border-radius: 8px; text-align: center; }
+        .timer-display { font-size: 2.5rem; font-weight: bold; font-family: monospace; }
+        .btn-reset { flex: 1; background: #eee; border: 1px solid #ccc; padding: 15px; border-radius: 8px; font-weight: bold; height: 100%; }
 
-        /* ナビゲーションボタン */
-        .nav-buttons { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; }
-        .nav-btn { background: #fff; border: 1px solid #ddd; padding: 12px; border-radius: 10px; font-weight: bold; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+        /* ナビゲーション */
+        .nav-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 15px; }
+        .nav-btn { background: #fff; border: 1px solid #ddd; padding: 15px 5px; border-radius: 10px; text-align: center; font-size: 0.9rem; font-weight: bold; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
 
-        /* スコア入力エリア（最初から表示） */
-        .score-card { background: #fff; border: 2px solid #ffcc00; border-radius: 15px; padding: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); position: relative; }
-        .set-title { color: #0056b3; font-weight: bold; font-size: 1.2rem; margin-bottom: 15px; }
-        .score-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 15px; }
-        .score-box { text-align: center; }
-        .score-input { width: 90%; font-size: 1.5rem; text-align: center; padding: 8px; border: 1px solid #ccc; border-radius: 5px; background: #fff; }
+        /* スコア入力カード */
+        .score-card { background: #fff; border: 2px solid #ffcc00; border-radius: 15px; padding: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        .set-header { color: #0056b3; font-weight: bold; font-size: 1.2rem; margin-bottom: 15px; }
+        .score-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+        .score-box { text-align: center; font-size: 0.8rem; color: #666; }
+        .score-input { width: 90%; font-size: 1.4rem; text-align: center; padding: 10px 5px; border: 1px solid #ccc; border-radius: 5px; margin-top: 5px; }
         
-        .total-score { color: #d9534f; font-size: 1.5rem; font-weight: bold; text-align: center; margin: 15px 0; border-top: 1px solid #eee; padding-top: 10px; }
-        .comment-area { width: 100%; height: 60px; border: 1px solid #ddd; border-radius: 5px; padding: 10px; box-sizing: border-box; }
-        
-        .main-action-btn { background: #28a745; color: white; border: none; width: 100%; padding: 15px; border-radius: 30px; font-size: 1.3rem; font-weight: bold; margin-bottom: 15px; cursor: pointer; }
+        .total-display { color: #d9534f; font-size: 1.8rem; font-weight: bold; text-align: center; margin: 20px 0; border-top: 1px solid #eee; padding-top: 15px; }
+        .checkbox-group { display: flex; justify-content: center; gap: 15px; margin-bottom: 10px; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h1>TAKE-UM7 氣</h1>
-
-    <button class="main-action-btn">新しいセットを開始</button>
-
     <div class="timer-card">
-        <div style="font-size: 0.9rem; color: #666;">競技用タイマー</div>
-        <div id="timerDisplay" class="timer-display">03:00</div>
-        <div style="display: flex; justify-content: center; align-items: center;">
-            <button id="startBtn" onclick="toggleTimer()" class="btn-start">タイマー開始</button>
-            <button onclick="resetTimer()" class="btn-reset">リセット</button>
+        <div class="timer-main" id="startBtn" onclick="toggleTimer()">
+            <div style="font-size: 0.8rem;">タイマー</div>
+            <div id="timerDisplay" class="timer-display">03:00</div>
+            <div id="timerStatus" style="font-size: 0.9rem;">開始</div>
         </div>
+        <button class="btn-reset" onclick="resetTimer()">リセット</button>
     </div>
 
-    <div class="nav-buttons">
+    <div class="nav-grid">
         <div class="nav-btn">📊 直近10セット</div>
         <div class="nav-btn">📅 今月の成績</div>
         <div class="nav-btn">🏆 今年の成績</div>
@@ -56,22 +49,21 @@
     </div>
 
     <div class="score-card">
-        <div class="set-title">第183セット <span style="font-size: 0.9rem; font-weight: normal; color: #666;">4/12 16:50</span></div>
+        <div class="set-header">第183セット <span style="font-size: 0.8rem; font-weight: normal; color: #888;">4/12 17:23</span></div>
         <div class="score-grid">
-            <div class="score-box">R1<br><input type="text" class="score-input" value="77550"></div>
-            <div class="score-box">R2<br><input type="text" class="score-input" value="77555"></div>
-            <div class="score-box">R3<br><input type="text" class="score-input" value="77755"></div>
-            <div class="score-box">R4<br><input type="text" class="score-input" value="77755"></div>
-            <div class="score-box">R5<br><input type="text" class="score-input" value="77773"></div>
-            <div class="score-box">R6<br><input type="text" class="score-input" value="55555"></div>
+            <div class="score-box">R1<br><input type="number" class="score-input" oninput="calculateTotal()"></div>
+            <div class="score-box">R2<br><input type="number" class="score-input" oninput="calculateTotal()"></div>
+            <div class="score-box">R3<br><input type="number" class="score-input" oninput="calculateTotal()"></div>
+            <div class="score-box">R4<br><input type="number" class="score-input" oninput="calculateTotal()"></div>
+            <div class="score-box">R5<br><input type="number" class="score-input" oninput="calculateTotal()"></div>
+            <div class="score-box">R6<br><input type="number" class="score-input" oninput="calculateTotal()"></div>
         </div>
-        <div class="total-score">セット合計：171 点</div>
-        <div style="margin-bottom: 10px;">
-            <label><input type="checkbox" checked> 点</label>
-            <label><input type="checkbox" checked> 中</label>
-            <label><input type="checkbox" checked> 上</label>
+        <div class="total-display">セット合計：<span id="totalPoints">0</span> 点</div>
+        <div class="checkbox-group">
+            <label><input type="checkbox"> 点</label>
+            <label><input type="checkbox"> 中</label>
+            <label><input type="checkbox"> 上</label>
         </div>
-        <textarea class="comment-area" placeholder="コメントを入力してください">またまた、家でファイブ的横線確信</textarea>
     </div>
 </div>
 
@@ -79,33 +71,55 @@
     let timeLeft = 180;
     let timerId = null;
 
+    // 音声読み上げ関数
+    function speak(text) {
+        const uttr = new SpeechSynthesisUtterance(text);
+        uttr.lang = 'ja-JP';
+        window.speechSynthesis.speak(uttr);
+    }
+
     function updateDisplay() {
         const m = Math.floor(timeLeft / 60);
         const s = timeLeft % 60;
         document.getElementById('timerDisplay').innerText = 
             `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+        
+        // 音声のタイミング
+        if (timeLeft === 180) { /* 待機 */ }
+        else if (timeLeft === 179) { speak("用意、スタート"); }
+        else if (timeLeft === 30) { speak("30秒前"); }
+        else if (timeLeft === 0) { speak("終了"); }
     }
 
     function toggleTimer() {
-        const btn = document.getElementById('startBtn');
+        const status = document.getElementById('timerStatus');
         if (timerId === null) {
-            btn.innerText = "一時停止";
-            btn.style.backgroundColor = "#e74c3c";
+            status.innerText = "停止";
             timerId = setInterval(() => {
                 if (timeLeft > 0) { timeLeft--; updateDisplay(); }
-                else { clearInterval(timerId); timerId = null; alert("終了！"); btn.innerText = "タイマー開始"; btn.style.backgroundColor = "#2c3e50"; }
+                else { clearInterval(timerId); timerId = null; status.innerText = "開始"; }
             }, 1000);
         } else {
             clearInterval(timerId); timerId = null;
-            btn.innerText = "再開"; btn.style.backgroundColor = "#2c3e50";
+            status.innerText = "再開";
         }
     }
 
     function resetTimer() {
         clearInterval(timerId); timerId = null;
         timeLeft = 180; updateDisplay();
-        document.getElementById('startBtn').innerText = "タイマー開始";
-        document.getElementById('startBtn').style.backgroundColor = "#2c3e50";
+        document.getElementById('timerStatus').innerText = "開始";
+    }
+
+    // スコア合計計算
+    function calculateTotal() {
+        const inputs = document.querySelectorAll('.score-input');
+        let total = 0;
+        inputs.forEach(input => {
+            const val = parseInt(input.value);
+            if (!isNaN(val)) { total += val; }
+        });
+        document.getElementById('totalPoints').innerText = total;
     }
 </script>
 
