@@ -1,7 +1,7 @@
-<div class="timer-section">
-    <div class="timer-container">
+<div class="timer-section-full">
+    <div class="timer-container-full">
         <span class="timer-label">競技用タイマー</span>
-        <div id="display" class="timer-digits">03:00</div>
+        <div id="display" class="timer-digits-large">03:00</div>
         <div class="timer-controls">
             <button id="startBtn" class="btn-timer-primary">タイマー開始</button>
             <button id="resetBtn" class="btn-timer-outline">リセット</button>
@@ -10,68 +10,62 @@
 </div>
 
 <style>
-    /* 販売向け：落ち着いた配色とデザイン */
-    .timer-section {
-        margin: 15px auto;
-        width: 90%;
-        max-width: 400px;
+    /* 画面の端まで使うための設定 */
+    .timer-section-full {
+        width: 100%;       /* 画面幅いっぱい */
+        margin: 10px 0;    /* 上下の隙間だけ確保 */
+        box-sizing: border-box;
+        padding: 0 10px;   /* 左右にほんの少しだけ余白 */
     }
 
-    .timer-container {
+    .timer-container-full {
         background-color: #ffffff;
         border: 1px solid #dcdcdc;
-        border-radius: 10px;
-        padding: 15px;
+        border-radius: 12px;
+        padding: 20px 10px; /* 上下をゆったりさせて大きく見せる */
         text-align: center;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.08);
     }
 
     .timer-label {
-        font-size: 0.85rem;
+        font-size: 1rem;   /* 少し大きく */
         color: #555;
         font-weight: bold;
-        display: block;
-        margin-bottom: 5px;
     }
 
-    .timer-digits {
-        font-size: 2.5rem;
-        font-weight: 700;
+    .timer-digits-large {
+        font-size: 4rem;   /* 数字を思い切り大きくしました！ */
+        font-weight: 800;
         color: #1a1a1a;
         margin: 10px 0;
         font-family: 'Courier New', Courier, monospace;
+        letter-spacing: 2px; /* 数字の間隔を広げて見やすく */
     }
 
     .timer-controls {
         display: flex;
         justify-content: center;
-        gap: 10px;
+        gap: 15px;
+        margin-top: 10px;
     }
 
-    /* 開始ボタン：しっかりとした濃紺 */
+    /* ボタンも押しやすい大きさに */
     .btn-timer-primary {
         background-color: #2c3e50;
         color: #ffffff;
         border: none;
-        padding: 10px 25px;
-        border-radius: 5px;
-        font-size: 1rem;
+        padding: 15px 35px; /* ボタンを大きく */
+        border-radius: 8px;
+        font-size: 1.1rem;
         font-weight: bold;
-        cursor: pointer;
     }
 
-    /* リセットボタン：控えめなデザイン */
     .btn-timer-outline {
         background-color: transparent;
         color: #666;
         border: 1px solid #ccc;
-        padding: 10px 20px;
-        border-radius: 5px;
-        font-size: 0.9rem;
-        cursor: pointer;
-    }
-
-    .btn-timer-primary:active, .btn-timer-outline:active {
-        opacity: 0.7;
+        padding: 15px 25px;
+        border-radius: 8px;
+        font-size: 1rem;
     }
 </style>
