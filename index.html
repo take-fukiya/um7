@@ -3,172 +3,195 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TAKE-UM7 氣 - 競技用</title>
+    <title>TAKE-UM7 吹矢修練記録</title>
     <style>
-        body { font-family: sans-serif; background-color: #f0f7ff; color: #333; margin: 0; padding: 10px; display: flex; flex-direction: column; align-items: center; }
-        .container { width: 100%; max-width: 480px; }
+        body { font-family: 'Hiragino Kaku Gothic ProN', sans-serif; background-color: #f0f4f8; padding: 10px; color: #333; }
+        .container { max-width: 600px; margin: auto; }
         
-        /* タイマーエリア（視認性重視） */
-        .timer-card { background: #fff; border: 2px solid #2c3e50; border-radius: 15px; padding: 15px; margin-bottom: 15px; text-align: center; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
-        .timer-display { font-size: 4rem; font-weight: bold; font-family: monospace; color: #1a1a1a; margin: 5px 0; }
-        .btn-group { display: flex; gap: 10px; justify-content: center; }
-        .btn-start { background: #2c3e50; color: white; border: none; padding: 15px 30px; border-radius: 10px; font-size: 1.2rem; font-weight: bold; flex: 2; }
-        .btn-reset { background: #f0f0f0; border: 1px solid #ccc; padding: 15px; border-radius: 10px; flex: 1; }
+        /* タイマー部分の特別スタイル */
+        .timer-section { background: #2c3e50; color: white; border-radius: 12px; padding: 15px; margin-bottom: 20px; text-align: center; box-shadow: 0 4px 10px rgba(0,0,0,0.2); }
+        .timer-display { font-size: 3.5rem; font-weight: bold; font-family: monospace; margin: 10px 0; }
+        .timer-btns { display: flex; gap: 10px; justify-content: center; }
+        .btn-timer { background: #fff; color: #2c3e50; border: none; padding: 10px 20px; border-radius: 6px; font-weight: bold; cursor: pointer; flex: 1; }
+        .btn-timer:active { background: #ddd; }
 
-        /* ナビゲーション */
-        .nav-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 15px; }
-        .nav-btn { background: #fff; border: 1px solid #ddd; padding: 12px; border-radius: 10px; text-align: center; font-size: 0.9rem; font-weight: bold; cursor: pointer; }
-
-        /* スコア入力カード */
-        .score-card { background: #fff; border: 2px solid #ffcc00; border-radius: 15px; padding: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
-        .set-header { color: #0056b3; font-weight: bold; font-size: 1.1rem; margin-bottom: 10px; border-bottom: 1px solid #eee; padding-bottom: 5px; }
-        
-        /* 5本入力用 */
-        .score-input-area { display: flex; justify-content: space-around; margin: 15px 0; }
-        .score-input { width: 15%; font-size: 1.5rem; text-align: center; padding: 8px 0; border: 1px solid #ccc; border-radius: 5px; }
-        
-        .total-display { color: #d9534f; font-size: 2rem; font-weight: bold; text-align: center; margin: 10px 0; }
-        .comment-area { width: 100%; height: 80px; margin-top: 10px; border: 1px solid #ddd; border-radius: 8px; padding: 10px; box-sizing: border-box; font-size: 1rem; }
-        
-        .checkbox-group { display: flex; justify-content: center; gap: 15px; margin: 10px 0; }
+        /* 元のスタイルを維持 */
+        .set-container { background: white; border: 2px solid #0056b3; border-radius: 12px; padding: 15px; margin-bottom: 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        .latest { border-color: #d32f2f; background-color: #fff9f9; }
+        h2 { margin-top: 0; color: #0056b3; font-size: 1.1em; border-bottom: 1px solid #eee; padding-bottom: 5px; }
+        .latest h2 { color: #d32f2f; }
+        .score-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 10px; }
+        .score-input { width: 100%; height: 45px; font-size: 20px; text-align: center; border-radius: 6px; border: 1px solid #ccc; box-sizing: border-box; }
+        .check-group { margin-top: 10px; display: flex; gap: 15px; font-size: 0.9em; font-weight: bold; }
+        .total-display { font-weight: bold; font-size: 1.4em; color: #d32f2f; display: block; margin-top: 12px; text-align: right; }
+        .memo-area { width: 100%; margin-top: 10px; padding: 10px; border-radius: 6px; border: 1px solid #ccc; box-sizing: border-box; font-size: 15px; background: #fafafa; }
+        .btn-add { background: #d32f2f; color: white; padding: 16px; border: none; border-radius: 8px; width: 100%; font-size: 1.2em; font-weight: bold; cursor: pointer; margin-bottom: 20px; box-shadow: 0 4px 0 #a31f1f; }
     </style>
 </head>
 <body>
+    <div class="container">
+        <h1 style="text-align: center; color: #333;">TAKE-UM7</h1>
 
-<div class="container">
-    <h2 style="text-align:center; color:#0056b3;">TAKE-UM7 氣</h2>
-
-    <div class="timer-card">
-        <div id="statusLabel" style="font-size: 1rem; color: #666;">競技準備</div>
-        <div id="timerDisplay" class="timer-display">03:00</div>
-        <div class="btn-group">
-            <button id="startBtn" onclick="startSequence()" class="btn-start">タイマー開始</button>
-            <button onclick="resetTimer()" class="btn-reset">リセット</button>
+        <div class="timer-section">
+            <div id="timerStatus" style="font-size: 0.9rem; color: #bdc3c7;">競技用タイマー</div>
+            <div id="timerDisplay" class="timer-display">03:00</div>
+            <div class="timer-btns">
+                <button class="btn-timer" id="timerActionBtn" onclick="startTimerSequence()">開始</button>
+                <button class="btn-timer" onclick="resetTimer()">リセット</button>
+            </div>
         </div>
+
+        <button class="btn-add" onclick="addNewSet()">新しい修練セットを開始</button>
+        <div id="records-root"></div>
     </div>
 
-    <div class="nav-grid">
-        <div class="nav-btn" onclick="alert('直近10セットの履歴を表示します')">📊 直近10セット</div>
-        <div class="nav-btn" onclick="alert('今月の成績を表示します')">📅 今月の成績</div>
-        <div class="nav-btn" onclick="alert('今年の成績を表示します')">🏆 今年の成績</div>
-        <div class="nav-btn" onclick="alert('全履歴を表示します')">📝 全履歴確認</div>
-    </div>
+    <script>
+        // --- タイマー機能 (追加部分) ---
+        let timeLeft = 180;
+        let timerId = null;
 
-    <div class="score-card">
-        <div class="set-header">第183セット <span id="currentDate" style="font-weight:normal; font-size:0.8rem; color:#888;"></span></div>
-        <div style="text-align:center; font-size:0.9rem; color:#666;">各矢の点数（7, 5, 3, 1, 0）を入力</div>
-        <div class="score-input-area">
-            <input type="number" class="score-input" oninput="calculate()">
-            <input type="number" class="score-input" oninput="calculate()">
-            <input type="number" class="score-input" oninput="calculate()">
-            <input type="number" class="score-input" oninput="calculate()">
-            <input type="number" class="score-input" oninput="calculate()">
-        </div>
-        <div class="total-display">合計：<span id="totalPoints">0</span> 点</div>
-        
-        <div class="checkbox-group">
-            <label><input type="checkbox" checked> 点</label>
-            <label><input type="checkbox" checked> 中</label>
-            <label><input type="checkbox" checked> 上</label>
-        </div>
-        
-        <textarea class="comment-area" id="userComment" placeholder="練習の気づきやメモを入力..."></textarea>
-    </div>
-</div>
+        function speak(text) {
+            const uttr = new SpeechSynthesisUtterance(text);
+            uttr.lang = 'ja-JP';
+            window.speechSynthesis.speak(uttr);
+        }
 
-<script>
-    let timeLeft = 180;
-    let timerId = null;
+        async function startTimerSequence() {
+            if (timerId !== null) return;
+            const status = document.getElementById('timerStatus');
+            const btn = document.getElementById('timerActionBtn');
+            btn.disabled = true;
 
-    // 日付表示
-    document.getElementById('currentDate').innerText = new Date().toLocaleString();
-
-    function speak(text) {
-        const uttr = new SpeechSynthesisUtterance(text);
-        uttr.lang = 'ja-JP';
-        window.speechSynthesis.speak(uttr);
-    }
-
-    // 競技開始シーケンス
-    async function startSequence() {
-        if (timerId !== null) return;
-        
-        const btn = document.getElementById('startBtn');
-        const label = document.getElementById('statusLabel');
-        btn.disabled = true;
-        
-        label.innerText = "待機中...";
-        await new Promise(r => setTimeout(r, 3000)); // 3秒待機
-        speak("用意");
-        
-        label.innerText = "用意...";
-        await new Promise(r => setTimeout(r, 2000)); // 2秒待機
-        speak("スタート");
-        
-        label.innerText = "競技中！";
-        btn.disabled = false;
-        btn.innerText = "停止";
-        btn.onclick = toggleTimer;
-
-        timerId = setInterval(() => {
-            if (timeLeft > 0) {
-                timeLeft--;
-                updateDisplay();
-                if (timeLeft === 30) speak("30秒前");
-            } else {
-                clearInterval(timerId);
-                timerId = null;
-                speak("終了");
-                label.innerText = "競技終了";
-            }
-        }, 1000);
-    }
-
-    function toggleTimer() {
-        const btn = document.getElementById('startBtn');
-        if (timerId) {
-            clearInterval(timerId);
-            timerId = null;
-            btn.innerText = "再開";
-        } else {
+            status.innerText = "3秒前...";
+            await new Promise(r => setTimeout(r, 3000));
+            speak("用意");
+            
+            status.innerText = "用意...";
+            await new Promise(r => setTimeout(r, 2000));
+            speak("スタート");
+            
+            status.innerText = "競技中！";
+            btn.disabled = false;
             btn.innerText = "停止";
+            btn.onclick = toggleTimer;
+
+            runTimer();
+        }
+
+        function runTimer() {
             timerId = setInterval(() => {
-                if (timeLeft > 0) { timeLeft--; updateDisplay(); }
-                else { clearInterval(timerId); timerId = null; speak("終了"); }
+                if (timeLeft > 0) {
+                    timeLeft--;
+                    updateTimerDisplay();
+                    if (timeLeft === 30) speak("30秒前");
+                } else {
+                    clearInterval(timerId);
+                    timerId = null;
+                    speak("終了");
+                    document.getElementById('timerStatus').innerText = "競技終了";
+                }
             }, 1000);
         }
-    }
 
-    function updateDisplay() {
-        const m = Math.floor(timeLeft / 60);
-        const s = timeLeft % 60;
-        document.getElementById('timerDisplay').innerText = 
-            `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
-    }
+        function toggleTimer() {
+            const btn = document.getElementById('timerActionBtn');
+            if (timerId) {
+                clearInterval(timerId);
+                timerId = null;
+                btn.innerText = "再開";
+            } else {
+                btn.innerText = "停止";
+                runTimer();
+            }
+        }
 
-    function resetTimer() {
-        clearInterval(timerId);
-        timerId = null;
-        timeLeft = 180;
-        updateDisplay();
-        const btn = document.getElementById('startBtn');
-        btn.innerText = "タイマー開始";
-        btn.disabled = false;
-        btn.onclick = startSequence;
-        document.getElementById('statusLabel').innerText = "競技準備";
-    }
+        function resetTimer() {
+            clearInterval(timerId);
+            timerId = null;
+            timeLeft = 180;
+            updateTimerDisplay();
+            const btn = document.getElementById('timerActionBtn');
+            btn.innerText = "開始";
+            btn.disabled = false;
+            btn.onclick = startTimerSequence;
+            document.getElementById('timerStatus').innerText = "競技用タイマー";
+        }
 
-    // スコア計算
-    function calculate() {
-        const inputs = document.querySelectorAll('.score-input');
-        let total = 0;
-        inputs.forEach(input => {
-            let val = parseInt(input.value);
-            if (!isNaN(val)) total += val;
-        });
-        document.getElementById('totalPoints').innerText = total;
-    }
-</script>
+        function updateTimerDisplay() {
+            const m = Math.floor(timeLeft / 60);
+            const s = timeLeft % 60;
+            document.getElementById('timerDisplay').innerText = 
+                `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+        }
 
+        // --- 元の修練記録機能 (維持・修正なし) ---
+        let sets = JSON.parse(localStorage.getItem('fukiya_sets_v2') || '[]');
+
+        function save() {
+            localStorage.setItem('fukiya_sets_v2', JSON.stringify(sets.slice(0, 30)));
+        }
+
+        function renderSets() {
+            const root = document.getElementById('records-root');
+            root.innerHTML = '';
+            sets.forEach((set, idx) => {
+                const div = document.createElement('div');
+                div.className = 'set-container' + (idx === 0 ? ' latest' : '');
+                div.innerHTML = `
+                    <h2>第${sets.length - idx}セット <span style="font-size:0.8em; color:#888;">(${set.time})</span></h2>
+                    <div class="score-grid">
+                        ${set.scores.map((s, rIdx) => `
+                            <div><label style="font-size:0.7em; color:#666;">R${rIdx+1}</label><br>
+                            <input type="number" class="score-input" value="${s}" oninput="update(${idx}, ${rIdx}, this)"></div>
+                        `).join('')}
+                    </div>
+                    <div class="check-group">
+                        <label><input type="checkbox" ${set.c1?'checked':''} onchange="updateCheck(${idx}, 'c1', this.checked)"> 点</label>
+                        <label><input type="checkbox" ${set.c2?'checked':''} onchange="updateCheck(${idx}, 'c2', this.checked)"> 中</label>
+                        <label><input type="checkbox" ${set.c3?'checked':''} onchange="updateCheck(${idx}, 'c3', this.checked)"> 上</label>
+                    </div>
+                    <span class="total-display" id="total-${idx}">合計：${set.total} 点</span>
+                    <textarea class="memo-area" rows="2" placeholder="備考・氣づき・所作のメモ" oninput="updateMemo(${idx}, this.value)">${set.memo||''}</textarea>
+                `;
+                root.appendChild(div);
+            });
+        }
+
+        function addNewSet() {
+            const now = new Date();
+            const timeStr = `${now.getMonth()+1}/${now.getDate()} ${now.getHours()}:${now.getMinutes().toString().padStart(2, '0')}`;
+            sets.unshift({ time: timeStr, scores:['','','','','',''], total:0, c1:false, c2:false, c3:false, memo:'' });
+            save();
+            renderSets();
+        }
+
+        function update(idx, rIdx, el) {
+            let val = el.value;
+            sets[idx].scores[rIdx] = val;
+            let grandTotal = 0;
+            sets[idx].scores.forEach(s => {
+                let scoreStr = s.toString();
+                for (let char of scoreStr) {
+                    let n = parseInt(char);
+                    if (!isNaN(n)) grandTotal += n;
+                }
+            });
+            sets[idx].total = grandTotal;
+            document.getElementById(`total-${idx}`).innerText = `合計：${grandTotal} 点`;
+            save();
+        }
+
+        function updateCheck(idx, key, val) {
+            sets[idx][key] = val;
+            save();
+        }
+
+        function updateMemo(idx, val) {
+            sets[idx].memo = val;
+            save();
+        }
+
+        if(sets.length === 0) addNewSet(); else renderSets();
+    </script>
 </body>
 </html>
