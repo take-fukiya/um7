@@ -1,9 +1,55 @@
-<script>
-        // --- タイマー機能 ---
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TAKE-UM7 吹矢修練記録</title>
+    <style>
+        body { font-family: 'Hiragino Kaku Gothic ProN', sans-serif; background-color: #f0f4f8; padding: 10px; color: #333; }
+        .container { max-width: 600px; margin: auto; }
+        .timer-section { background: #2c3e50; color: white; border-radius: 12px; padding: 15px; margin-bottom: 20px; text-align: center; box-shadow: 0 4px 10px rgba(0,0,0,0.2); }
+        .timer-display { font-size: 3.5rem; font-weight: bold; font-family: monospace; margin: 10px 0; }
+        .timer-btns { display: flex; gap: 10px; justify-content: center; }
+        .btn-timer { background: #fff; color: #2c3e50; border: none; padding: 10px 20px; border-radius: 6px; font-weight: bold; cursor: pointer; flex: 1; }
+        .analysis-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; }
+        .btn-analysis { background: white; border: 1px solid #ccc; padding: 12px; border-radius: 10px; font-size: 0.9em; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 5px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+        .set-container { background: white; border: 2px solid #0056b3; border-radius: 12px; padding: 15px; margin-bottom: 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        .latest { border-color: #d32f2f; background-color: #fff9f9; }
+        h2 { margin-top: 0; color: #0056b3; font-size: 1.1em; border-bottom: 1px solid #eee; padding-bottom: 5px; }
+        .latest h2 { color: #d32f2f; }
+        .score-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 10px; }
+        .score-input { width: 100%; height: 45px; font-size: 18px; text-align: center; border-radius: 6px; border: 1px solid #ccc; box-sizing: border-box; letter-spacing: 2px; }
+        .check-group { margin-top: 10px; display: flex; gap: 15px; font-size: 0.9em; font-weight: bold; }
+        .total-display { font-weight: bold; font-size: 1.4em; color: #d32f2f; display: block; margin-top: 12px; text-align: right; }
+        .memo-area { width: 100%; margin-top: 10px; padding: 10px; border-radius: 6px; border: 1px solid #ccc; box-sizing: border-box; font-size: 15px; background: #fafafa; }
+        .btn-add { background: #d32f2f; color: white; padding: 16px; border: none; border-radius: 8px; width: 100%; font-size: 1.2em; font-weight: bold; cursor: pointer; margin-bottom: 20px; box-shadow: 0 4px 0 #a31f1f; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 style="text-align: center; color: #333;">TAKE-UM7</h1>
+        <div class="timer-section">
+            <div id="timerStatus" style="font-size: 0.9rem; color: #bdc3c7;">競技用タイマー</div>
+            <div id="timerDisplay" class="timer-display">03:00</div>
+            <div class="timer-btns">
+                <button class="btn-timer" id="timerActionBtn" onclick="startTimerSequence()">開始</button>
+                <button class="btn-timer" onclick="resetTimer()">リセット</button>
+            </div>
+        </div>
+        <div class="analysis-grid">
+            <button class="btn-analysis" onclick="analyzeRecent()">📊 直近10セット</button>
+            <button class="btn-analysis" onclick="alert('今月の分析機能は準備中です')">📅 今月の成績</button>
+            <button class="btn-analysis" onclick="alert('今年の分析機能は準備中です')">🏆 今年の成績</button>
+            <button class="btn-analysis" onclick="alert('履歴管理は準備中です')">📝 全履歴確認</button>
+        </div>
+        <button class="btn-add" onclick="addNewSet()">新しい修練セットを開始</button>
+        <div id="records-root"></div>
+    </div>
+
+    <script>
         let timeLeft = 180;
         let timerId = null;
         function speak(text) { const uttr = new SpeechSynthesisUtterance(text); uttr.lang = 'ja-JP'; window.speechSynthesis.speak(uttr); }
-
         async function startTimerSequence() {
             if (timerId !== null) return;
             const status = document.getElementById('timerStatus');
@@ -21,58 +67,39 @@
             btn.onclick = toggleTimer;
             runTimer();
         }
-
         function runTimer() {
             timerId = setInterval(() => {
-                if (timeLeft > 0) {
-                    timeLeft--;
-                    updateTimerDisplay();
-                    if (timeLeft === 30) speak("30秒前");
-                } else {
-                    clearInterval(timerId); timerId = null; speak("終了");
-                    document.getElementById('timerStatus').innerText = "競技終了";
-                }
+                if (timeLeft > 0) { timeLeft--; updateTimerDisplay(); if (timeLeft === 30) speak("30秒前"); }
+                else { clearInterval(timerId); timerId = null; speak("終了"); document.getElementById('timerStatus').innerText = "競技終了"; }
             }, 1000);
         }
-
         function toggleTimer() {
             const btn = document.getElementById('timerActionBtn');
             if (timerId) { clearInterval(timerId); timerId = null; btn.innerText = "再開"; }
             else { btn.innerText = "停止"; runTimer(); }
         }
-
         function resetTimer() {
             clearInterval(timerId); timerId = null; timeLeft = 180; updateTimerDisplay();
             const btn = document.getElementById('timerActionBtn');
             btn.innerText = "開始"; btn.disabled = false; btn.onclick = startTimerSequence;
             document.getElementById('timerStatus').innerText = "競技用タイマー";
         }
-
         function updateTimerDisplay() {
             const m = Math.floor(timeLeft / 60); const s = timeLeft % 60;
             document.getElementById('timerDisplay').innerText = `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
         }
 
-        // --- 記録・分析機能 ---
-        // 以前のデータ（fukiya_sets_v2）を引き継ぎます
         let sets = JSON.parse(localStorage.getItem('fukiya_sets_v2') || '[]');
-
         function save() { localStorage.setItem('fukiya_sets_v2', JSON.stringify(sets)); }
 
-        // 【新機能】直近10セットの分析
         function analyzeRecent() {
-            if (sets.length === 0) {
-                alert("まだ修練データがありません。");
-                return;
-            }
-            // 直近10個（またはそれ以下）のデータを取得
+            if (sets.length === 0) { alert("まだデータがありません"); return; }
             const recent = sets.slice(0, 10);
             const scores = recent.map(s => s.total);
             const max = Math.max(...scores);
             const min = Math.min(...scores);
             const avg = (scores.reduce((a, b) => a + b, 0) / scores.length).toFixed(1);
-
-            alert(`【直近${recent.length}セットの分析結果】\n\n最高点： ${max}点\n平均点： ${avg}点\n最低点： ${min}点`);
+            alert(`【直近${recent.length}セットの分析】\n最高：${max}点 / 平均：${avg}点 / 最低：${min}点`);
         }
 
         function renderSets() {
@@ -85,9 +112,8 @@
                     <h2>第${sets.length - idx}セット <span style="font-size:0.8em; color:#888;">(${set.time})</span></h2>
                     <div class="score-grid">
                         ${set.scores.map((s, rIdx) => `
-                            <div><label style="font-size:0.7em; color:#666;">R${rIdx+1} (5本)</label><br>
-                            <input type="text" inputmode="numeric" class="score-input" value="${s}" 
-                                   maxlength="5" oninput="update(${idx}, ${rIdx}, this)" placeholder=""></div>
+                            <div><label style="font-size:0.7em; color:#666;">R${rIdx+1}</label><br>
+                            <input type="text" inputmode="numeric" class="score-input" value="${s}" maxlength="5" oninput="update(${idx}, ${rIdx}, this)"></div>
                         `).join('')}
                     </div>
                     <div class="check-group">
@@ -96,7 +122,7 @@
                         <label><input type="checkbox" ${set.c3?'checked':''} onchange="updateCheck(${idx}, 'c3', this.checked)"> 睨</label>
                     </div>
                     <span class="total-display" id="total-${idx}">合計：${set.total} 点</span>
-                    <textarea class="memo-area" rows="2" placeholder="備考・氣づき・所作のメモ" oninput="updateMemo(${idx}, this.value)">${set.memo||''}</textarea>
+                    <textarea class="memo-area" rows="2" oninput="updateMemo(${idx}, this.value)">${set.memo||''}</textarea>
                 `;
                 root.appendChild(div);
             });
@@ -104,7 +130,7 @@
 
         function addNewSet() {
             const now = new Date();
-            const timeStr = `${now.getFullYear()}/${now.getMonth()+1}/${now.getDate()} ${now.getHours()}:${now.getMinutes().toString().padStart(2, '0')}`;
+            const timeStr = `${now.getMonth()+1}/${now.getDate()} ${now.getHours()}:${now.getMinutes().toString().padStart(2, '0')}`;
             sets.unshift({ time: timeStr, scores:['','','','','',''], total:0, c1:false, c2:false, c3:false, memo:'' });
             save(); renderSets();
         }
@@ -114,11 +140,7 @@
             sets[idx].scores[rIdx] = el.value;
             let grandTotal = 0;
             sets[idx].scores.forEach(s => {
-                let scoreStr = s.toString();
-                for (let char of scoreStr) {
-                    let n = parseInt(char);
-                    if (!isNaN(n)) grandTotal += n;
-                }
+                for (let char of s.toString()) { let n = parseInt(char); if (!isNaN(n)) grandTotal += n; }
             });
             sets[idx].total = grandTotal;
             document.getElementById(`total-${idx}`).innerText = `合計：${grandTotal} 点`;
@@ -127,6 +149,7 @@
 
         function updateCheck(idx, key, val) { sets[idx][key] = val; save(); }
         function updateMemo(idx, val) { sets[idx].memo = val; save(); }
-
         if(sets.length === 0) addNewSet(); else renderSets();
     </script>
+</body>
+</html>
