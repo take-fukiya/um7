@@ -1,63 +1,4 @@
-<!DOCTYPE html>
-<html lang="ja">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TAKE-UM7 吹矢修練記録</title>
-    <style>
-        body { font-family: 'Hiragino Kaku Gothic ProN', sans-serif; background-color: #f0f4f8; padding: 10px; color: #333; }
-        .container { max-width: 600px; margin: auto; }
-        
-        /* タイマー部分 */
-        .timer-section { background: #2c3e50; color: white; border-radius: 12px; padding: 15px; margin-bottom: 20px; text-align: center; box-shadow: 0 4px 10px rgba(0,0,0,0.2); }
-        .timer-display { font-size: 3.5rem; font-weight: bold; font-family: monospace; margin: 10px 0; }
-        .timer-btns { display: flex; gap: 10px; justify-content: center; }
-        .btn-timer { background: #fff; color: #2c3e50; border: none; padding: 10px 20px; border-radius: 6px; font-weight: bold; cursor: pointer; flex: 1; }
-
-        /* 分析スイッチ（復活） */
-        .analysis-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; }
-        .btn-analysis { background: white; border: 1px solid #ccc; padding: 12px; border-radius: 10px; font-size: 0.9em; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 5px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
-
-        /* 記録カード */
-        .set-container { background: white; border: 2px solid #0056b3; border-radius: 12px; padding: 15px; margin-bottom: 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
-        .latest { border-color: #d32f2f; background-color: #fff9f9; }
-        h2 { margin-top: 0; color: #0056b3; font-size: 1.1em; border-bottom: 1px solid #eee; padding-bottom: 5px; }
-        .latest h2 { color: #d32f2f; }
-        
-        .score-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 10px; }
-        .score-input { width: 100%; height: 45px; font-size: 18px; text-align: center; border-radius: 6px; border: 1px solid #ccc; box-sizing: border-box; letter-spacing: 2px; }
-        
-        .check-group { margin-top: 10px; display: flex; gap: 15px; font-size: 0.9em; font-weight: bold; }
-        .total-display { font-weight: bold; font-size: 1.4em; color: #d32f2f; display: block; margin-top: 12px; text-align: right; }
-        .memo-area { width: 100%; margin-top: 10px; padding: 10px; border-radius: 6px; border: 1px solid #ccc; box-sizing: border-box; font-size: 15px; background: #fafafa; }
-        .btn-add { background: #d32f2f; color: white; padding: 16px; border: none; border-radius: 8px; width: 100%; font-size: 1.2em; font-weight: bold; cursor: pointer; margin-bottom: 20px; box-shadow: 0 4px 0 #a31f1f; }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <h1 style="text-align: center; color: #333;">TAKE-UM7</h1>
-
-        <div class="timer-section">
-            <div id="timerStatus" style="font-size: 0.9rem; color: #bdc3c7;">競技用タイマー</div>
-            <div id="timerDisplay" class="timer-display">03:00</div>
-            <div class="timer-btns">
-                <button class="btn-timer" id="timerActionBtn" onclick="startTimerSequence()">開始</button>
-                <button class="btn-timer" onclick="resetTimer()">リセット</button>
-            </div>
-        </div>
-
-        <div class="analysis-grid">
-            <button class="btn-analysis" onclick="alert('直近10セットの最高・平均・最低点を算出します')">📊 直近10セット</button>
-            <button class="btn-analysis" onclick="alert('今月の成績を集計します')">📅 今月の成績</button>
-            <button class="btn-analysis" onclick="alert('今年の成績を集計します')">🏆 今年の成績</button>
-            <button class="btn-analysis" onclick="alert('全履歴を表示します')">📝 全履歴確認</button>
-        </div>
-
-        <button class="btn-add" onclick="addNewSet()">新しい修練セットを開始</button>
-        <div id="records-root"></div>
-    </div>
-
-    <script>
+<script>
         // --- タイマー機能 ---
         let timeLeft = 180;
         let timerId = null;
@@ -73,7 +14,7 @@
             speak("用意");
             status.innerText = "用意...";
             await new Promise(r => setTimeout(r, 2000));
-            speak("はじめ"); // ①「はじめ」に変更しました
+            speak("はじめ");
             status.innerText = "競技中！";
             btn.disabled = false;
             btn.innerText = "停止";
@@ -112,9 +53,27 @@
             document.getElementById('timerDisplay').innerText = `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
         }
 
-        // --- 記録機能 ---
+        // --- 記録・分析機能 ---
+        // 以前のデータ（fukiya_sets_v2）を引き継ぎます
         let sets = JSON.parse(localStorage.getItem('fukiya_sets_v2') || '[]');
-        function save() { localStorage.setItem('fukiya_sets_v2', JSON.stringify(sets.slice(0, 30))); }
+
+        function save() { localStorage.setItem('fukiya_sets_v2', JSON.stringify(sets)); }
+
+        // 【新機能】直近10セットの分析
+        function analyzeRecent() {
+            if (sets.length === 0) {
+                alert("まだ修練データがありません。");
+                return;
+            }
+            // 直近10個（またはそれ以下）のデータを取得
+            const recent = sets.slice(0, 10);
+            const scores = recent.map(s => s.total);
+            const max = Math.max(...scores);
+            const min = Math.min(...scores);
+            const avg = (scores.reduce((a, b) => a + b, 0) / scores.length).toFixed(1);
+
+            alert(`【直近${recent.length}セットの分析結果】\n\n最高点： ${max}点\n平均点： ${avg}点\n最低点： ${min}点`);
+        }
 
         function renderSets() {
             const root = document.getElementById('records-root');
@@ -128,8 +87,8 @@
                         ${set.scores.map((s, rIdx) => `
                             <div><label style="font-size:0.7em; color:#666;">R${rIdx+1} (5本)</label><br>
                             <input type="text" inputmode="numeric" class="score-input" value="${s}" 
-                                   maxlength="5" oninput="update(${idx}, ${rIdx}, this)" 
-                                   placeholder=""></div> `).join('')}
+                                   maxlength="5" oninput="update(${idx}, ${rIdx}, this)" placeholder=""></div>
+                        `).join('')}
                     </div>
                     <div class="check-group">
                         <label><input type="checkbox" ${set.c1?'checked':''} onchange="updateCheck(${idx}, 'c1', this.checked)"> 点</label>
@@ -171,5 +130,3 @@
 
         if(sets.length === 0) addNewSet(); else renderSets();
     </script>
-</body>
-</html>
