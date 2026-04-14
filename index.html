@@ -13,7 +13,7 @@
         .btn-timer { background: #fff; color: #2c3e50; border: none; padding: 10px 20px; border-radius: 6px; font-weight: bold; cursor: pointer; flex: 1; }
         .analysis-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; }
         .btn-analysis { background: white; border: 1px solid #ccc; padding: 12px; border-radius: 10px; font-size: 0.9em; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 5px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
-        .set-container { background: white; border: 2px solid #0056b3; border-radius: 12px; padding: 15px; margin-bottom: 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        .set-container { background: white; border: 2px solid #0056b3; border-radius: 12px; padding: 15px; margin-bottom: 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); position: relative; }
         .latest { border-color: #d32f2f; background-color: #fff9f9; }
         h2 { margin-top: 0; color: #0056b3; font-size: 1.1em; border-bottom: 1px solid #eee; padding-bottom: 5px; }
         .latest h2 { color: #d32f2f; }
@@ -23,6 +23,7 @@
         .total-display { font-weight: bold; font-size: 1.4em; color: #d32f2f; display: block; margin-top: 12px; text-align: right; }
         .memo-area { width: 100%; margin-top: 10px; padding: 10px; border-radius: 6px; border: 1px solid #ccc; box-sizing: border-box; font-size: 15px; background: #fafafa; }
         .btn-add { background: #d32f2f; color: white; padding: 16px; border: none; border-radius: 8px; width: 100%; font-size: 1.2em; font-weight: bold; cursor: pointer; margin-bottom: 20px; box-shadow: 0 4px 0 #a31f1f; }
+        .del-btn { position: absolute; top: 10px; right: 10px; background: none; border: none; color: #ccc; cursor: pointer; font-size: 1.2em; }
     </style>
 </head>
 <body>
@@ -37,10 +38,10 @@
             </div>
         </div>
         <div class="analysis-grid">
-            <button class="btn-analysis" onclick="analyzeRecent()">📊 直近10セット</button>
-            <button class="btn-analysis" onclick="alert('今月の分析機能は準備中です')">📅 今月の成績</button>
-            <button class="btn-analysis" onclick="alert('今年の分析機能は準備中です')">🏆 今年の成績</button>
-            <button class="btn-analysis" onclick="alert('履歴管理は準備中です')">📝 全履歴確認</button>
+            <button class="btn-analysis" onclick="runAnalysis('recent')">📊 直近10セット</button>
+            <button class="btn-analysis" onclick="runAnalysis('month')">📅 今月の成績</button>
+            <button class="btn-analysis" onclick="runAnalysis('year')">🏆 今年の成績</button>
+            <button class="btn-analysis" onclick="showHistory()">📝 全履歴確認</button>
         </div>
         <button class="btn-add" onclick="addNewSet()">新しい修練セットを開始</button>
         <div id="records-root"></div>
@@ -57,14 +58,10 @@
             btn.disabled = true;
             status.innerText = "3秒前...";
             await new Promise(r => setTimeout(r, 3000));
-            speak("用意");
-            status.innerText = "用意...";
+            speak("用意"); status.innerText = "用意...";
             await new Promise(r => setTimeout(r, 2000));
-            speak("はじめ");
-            status.innerText = "競技中！";
-            btn.disabled = false;
-            btn.innerText = "停止";
-            btn.onclick = toggleTimer;
+            speak("はじめ"); status.innerText = "競技中！";
+            btn.disabled = false; btn.innerText = "停止"; btn.onclick = toggleTimer;
             runTimer();
         }
         function runTimer() {
@@ -89,17 +86,44 @@
             document.getElementById('timerDisplay').innerText = `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
         }
 
+        // --- データ管理 ---
         let sets = JSON.parse(localStorage.getItem('fukiya_sets_v2') || '[]');
         function save() { localStorage.setItem('fukiya_sets_v2', JSON.stringify(sets)); }
 
-        function analyzeRecent() {
-            if (sets.length === 0) { alert("まだデータがありません"); return; }
-            const recent = sets.slice(0, 10);
-            const scores = recent.map(s => s.total);
+        // --- 改良版 分析エンジン ---
+        function runAnalysis(type) {
+            let filtered = sets.filter(s => s.total > 0); // 0点を除外
+            const now = new Date();
+            
+            if (type === 'month') {
+                const currentMonth = `${now.getFullYear()}/${now.getMonth() + 1}`;
+                filtered = filtered.filter(s => s.time.startsWith(currentMonth));
+            } else if (type === 'year') {
+                const currentYear = `${now.getFullYear()}/`;
+                filtered = filtered.filter(s => s.time.startsWith(currentYear));
+            } else if (type === 'recent') {
+                filtered = filtered.slice(0, 10);
+            }
+
+            if (filtered.length === 0) {
+                alert("集計対象となるデータ（1点以上）がありません。");
+                return;
+            }
+
+            const scores = filtered.map(s => s.total);
             const max = Math.max(...scores);
             const min = Math.min(...scores);
             const avg = (scores.reduce((a, b) => a + b, 0) / scores.length).toFixed(1);
-            alert(`【直近${recent.length}セットの分析】\n最高：${max}点 / 平均：${avg}点 / 最低：${min}点`);
+            const count = filtered.length;
+
+            const titles = { recent: '直近10セット', month: '今月の成績', year: '今年の成績' };
+            alert(`【${titles[type]}】\n対象数： ${count} セット\n\n最高： ${max} 点\n平均： ${avg} 点\n最低： ${min} 点`);
+        }
+
+        function showHistory() {
+            const totalSets = sets.length;
+            const activeSets = sets.filter(s => s.total > 0).length;
+            alert(`【全履歴確認】\n累計修練セット数： ${totalSets}\n（有効記録： ${activeSets}）\n\n※過去の記録は画面を下にスクロールして確認できます。`);
         }
 
         function renderSets() {
@@ -109,6 +133,7 @@
                 const div = document.createElement('div');
                 div.className = 'set-container' + (idx === 0 ? ' latest' : '');
                 div.innerHTML = `
+                    <button class="del-btn" onclick="deleteSet(${idx})">×</button>
                     <h2>第${sets.length - idx}セット <span style="font-size:0.8em; color:#888;">(${set.time})</span></h2>
                     <div class="score-grid">
                         ${set.scores.map((s, rIdx) => `
@@ -122,7 +147,7 @@
                         <label><input type="checkbox" ${set.c3?'checked':''} onchange="updateCheck(${idx}, 'c3', this.checked)"> 睨</label>
                     </div>
                     <span class="total-display" id="total-${idx}">合計：${set.total} 点</span>
-                    <textarea class="memo-area" rows="2" oninput="updateMemo(${idx}, this.value)">${set.memo||''}</textarea>
+                    <textarea class="memo-area" rows="2" placeholder="備考・氣づき・所作のメモ" oninput="updateMemo(${idx}, this.value)">${set.memo||''}</textarea>
                 `;
                 root.appendChild(div);
             });
@@ -130,9 +155,15 @@
 
         function addNewSet() {
             const now = new Date();
-            const timeStr = `${now.getMonth()+1}/${now.getDate()} ${now.getHours()}:${now.getMinutes().toString().padStart(2, '0')}`;
+            const timeStr = `${now.getFullYear()}/${now.getMonth()+1}/${now.getDate()} ${now.getHours()}:${now.getMinutes().toString().padStart(2, '0')}:${now.getSeconds().toString().padStart(2, '0')}`;
             sets.unshift({ time: timeStr, scores:['','','','','',''], total:0, c1:false, c2:false, c3:false, memo:'' });
             save(); renderSets();
+        }
+
+        function deleteSet(idx) {
+            if (confirm("このセットの記録を削除してもよろしいですか？")) {
+                sets.splice(idx, 1); save(); renderSets();
+            }
         }
 
         function update(idx, rIdx, el) {
@@ -149,6 +180,7 @@
 
         function updateCheck(idx, key, val) { sets[idx][key] = val; save(); }
         function updateMemo(idx, val) { sets[idx].memo = val; save(); }
+
         if(sets.length === 0) addNewSet(); else renderSets();
     </script>
 </body>
