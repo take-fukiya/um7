@@ -378,9 +378,9 @@
         const newSet = {
             id: nextId,
             time: timeStr,
-            scores: ['', '', '', '', '', ''],
+            scores: ["", "", "", "", "", ""],
             checks: { ten: false, chuu: false, shun: false },
-            memo: '',
+            memo: "",
             total: 0
         };
         sets.push(newSet);
@@ -444,7 +444,7 @@
 
             let roundsHtml = '';
             for(let i=0; i<6; i++) {
-                const val = set.scores[i] || '';
+                const val = set.scores[i] !== undefined ? set.scores[i] : '';
                 roundsHtml += `
                     <div class="round-box">
                         <div class="round-title">R${i+1}</div>
