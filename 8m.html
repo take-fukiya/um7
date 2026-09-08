@@ -229,7 +229,6 @@
     let timeLeft = 180, prepTime = 3;
     let isRunning = false, isPrep = false;
 
-    // 音声発声処理
     function speakText(text) {
         if ('speechSynthesis' in window) {
             window.speechSynthesis.cancel();
@@ -251,7 +250,6 @@
         const status = document.getElementById('timerStatus');
 
         if (isRunning || isPrep) {
-            // 一時停止処理
             clearInterval(prepInterval);
             clearInterval(timerInterval);
             isRunning = false;
@@ -259,11 +257,9 @@
             btn.innerText = '再開';
             status.innerText = '一時停止中';
         } else {
-            // 開始処理（3秒前の「用意」からスタート）
             btn.innerText = '一時停止';
             
             if (timeLeft === 180 && prepTime === 3) {
-                // 初回スタート（用意 3秒前）
                 isPrep = true;
                 status.innerText = '用意...';
                 speakText('用意');
@@ -277,7 +273,6 @@
                     }
                 }, 1000);
             } else {
-                // 再開時
                 startMainTimer();
             }
         }
@@ -294,7 +289,6 @@
                 timeLeft--;
                 updateTimerDisplay();
 
-                // 30秒前のアナウンス
                 if (timeLeft === 30) {
                     speakText('30秒前');
                 }
@@ -403,13 +397,17 @@
         }
     }
 
-    // 5本分（最大5文字）を1文字ずつ数値化して合計
-    function updateScore(setIndex, rIndex, value) {
-        // 5文字制限
-        if (value.length > 5) {
-            value = value.slice(0, 5);
+    // 入力制御：5桁（5本）制限 ＆ 各数字を足し算
+    function updateScore(setIndex, rIndex, element) {
+        let val = element.value;
+
+        // 5桁を超えたら強制カット
+        if (val.length > 5) {
+            val = val.slice(0, 5);
+            element.value = val;
         }
-        sets[setIndex].scores[rIndex] = value;
+
+        sets[setIndex].scores[rIndex] = val;
 
         let total = 0;
         sets[setIndex].scores.forEach(v => {
@@ -423,11 +421,6 @@
         sets[setIndex].total = total;
         saveData();
 
-        // 表示のリアルタイム更新
-        const scoreInput = document.getElementById(`input-${sets[setIndex].id}-${rIndex}`);
-        if (scoreInput && scoreInput.value !== value) {
-            scoreInput.value = value;
-        }
         document.getElementById(`total-${sets[setIndex].id}`).innerText = `計 ${total} 点`;
     }
 
@@ -456,7 +449,7 @@
                 roundsHtml += `
                     <div class="round-box">
                         <div class="round-title">R${i+1}</div>
-                        <input type="text" id="input-${set.id}-${i}" class="score-input" value="${set.scores[i]}" maxlength="5" oninput="updateScore(${realIndex}, ${i}, this.value)" inputmode="numeric" placeholder="77777">
+                        <input type="text" id="input-${set.id}-${i}" class="score-input" value="${set.scores[i]}" maxlength="5" oninput="updateScore(${realIndex}, ${i}, this)" inputmode="numeric" placeholder="77777">
                     </div>
                 `;
             }
