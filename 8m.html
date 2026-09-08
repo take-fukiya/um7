@@ -51,7 +51,8 @@
 
         .timer-card h2 { margin: 0; font-size: 0.85rem; color: #bdc3c7; }
         .timer-display { font-size: 2.5rem; font-weight: bold; font-family: monospace; margin: 2px 0 6px 0; letter-spacing: 2px; }
-        .timer-controls { display: flex; gap: 8px; }
+        .timer-status { font-size: 0.85rem; color: #f1c40f; min-height: 1.2em; font-weight: bold; }
+        .timer-controls { display: flex; gap: 8px; margin-top: 4px; }
         .btn-timer { flex: 1; padding: 8px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 0.9rem; }
         .btn-start { background: #ffffff; color: #2c3e50; }
         .btn-reset { background: rgba(255,255,255,0.2); color: #ffffff; }
@@ -136,6 +137,7 @@
             border-radius: 6px;
             background: #fff;
             color: var(--text-main);
+            letter-spacing: 1px;
         }
 
         .check-group {
@@ -196,6 +198,7 @@
     <div class="timer-card">
         <h2>競技用タイマー (3分)</h2>
         <div class="timer-display" id="timerDisplay">03:00</div>
+        <div class="timer-status" id="timerStatus"></div>
         <div class="timer-controls">
             <button class="btn-timer btn-start" id="timerStartBtn" onclick="toggleTimer()">開始</button>
             <button class="btn-timer btn-reset" onclick="resetTimer()">リセット</button>
@@ -222,12 +225,14 @@
 </div>
 
 <script>
-    let timerInterval = null, timeLeft = 180, isRunning = false;
+    let timerInterval = null, prepInterval = null;
+    let timeLeft = 180, prepTime = 3;
+    let isRunning = false, isPrep = false;
 
-    // 音声読み上げ機能
+    // 音声発声処理
     function speakText(text) {
         if ('speechSynthesis' in window) {
-            window.speechSynthesis.cancel(); // 前の音声をクリア
+            window.speechSynthesis.cancel();
             const uttr = new SpeechSynthesisUtterance(text);
             uttr.lang = 'ja-JP';
             uttr.rate = 1.0;
@@ -243,30 +248,77 @@
 
     function toggleTimer() {
         const btn = document.getElementById('timerStartBtn');
-        if (isRunning) {
-            clearInterval(timerInterval); isRunning = false; btn.innerText = '再開';
+        const status = document.getElementById('timerStatus');
+
+        if (isRunning || isPrep) {
+            // 一時停止処理
+            clearInterval(prepInterval);
+            clearInterval(timerInterval);
+            isRunning = false;
+            isPrep = false;
+            btn.innerText = '再開';
+            status.innerText = '一時停止中';
         } else {
-            // スマホでの音声再生制限を解除するために無音で1度呼び出す
-            speakText('');
-            isRunning = true; btn.innerText = '一時停止';
-            timerInterval = setInterval(() => {
-                if (timeLeft > 0) {
-                    timeLeft--;
-                    updateTimerDisplay();
-                } else {
-                    clearInterval(timerInterval);
-                    isRunning = false;
-                    btn.innerText = '開始';
-                    speakText('3分が経過しました');
-                    showAlert('時間終了', '3分が経過しました！');
-                }
-            }, 1000);
+            // 開始処理（3秒前の「用意」からスタート）
+            btn.innerText = '一時停止';
+            
+            if (timeLeft === 180 && prepTime === 3) {
+                // 初回スタート（用意 3秒前）
+                isPrep = true;
+                status.innerText = '用意...';
+                speakText('用意');
+
+                prepInterval = setInterval(() => {
+                    prepTime--;
+                    if (prepTime <= 0) {
+                        clearInterval(prepInterval);
+                        isPrep = false;
+                        startMainTimer();
+                    }
+                }, 1000);
+            } else {
+                // 再開時
+                startMainTimer();
+            }
         }
     }
 
+    function startMainTimer() {
+        const status = document.getElementById('timerStatus');
+        isRunning = true;
+        status.innerText = '競技中';
+        speakText('はじめ');
+
+        timerInterval = setInterval(() => {
+            if (timeLeft > 0) {
+                timeLeft--;
+                updateTimerDisplay();
+
+                // 30秒前のアナウンス
+                if (timeLeft === 30) {
+                    speakText('30秒前');
+                }
+            } else {
+                clearInterval(timerInterval);
+                isRunning = false;
+                document.getElementById('timerStartBtn').innerText = '開始';
+                status.innerText = '終了';
+                speakText('終了');
+                showAlert('時間終了', '競技時間が終了しました！');
+            }
+        }, 1000);
+    }
+
     function resetTimer() {
-        clearInterval(timerInterval); isRunning = false; timeLeft = 180;
-        document.getElementById('timerStartBtn').innerText = '開始'; updateTimerDisplay();
+        clearInterval(prepInterval);
+        clearInterval(timerInterval);
+        isRunning = false;
+        isPrep = false;
+        timeLeft = 180;
+        prepTime = 3;
+        document.getElementById('timerStartBtn').innerText = '開始';
+        document.getElementById('timerStatus').innerText = '';
+        updateTimerDisplay();
     }
 
     function showAlert(title, msg) {
@@ -351,9 +403,14 @@
         }
     }
 
-    // 数字列（例: "77777"）を1桁ずつバラバラにして合計する計算ロジック
+    // 5本分（最大5文字）を1文字ずつ数値化して合計
     function updateScore(setIndex, rIndex, value) {
+        // 5文字制限
+        if (value.length > 5) {
+            value = value.slice(0, 5);
+        }
         sets[setIndex].scores[rIndex] = value;
+
         let total = 0;
         sets[setIndex].scores.forEach(v => {
             const str = String(v);
@@ -362,8 +419,15 @@
                 if (!isNaN(num)) total += num;
             }
         });
+
         sets[setIndex].total = total;
         saveData();
+
+        // 表示のリアルタイム更新
+        const scoreInput = document.getElementById(`input-${sets[setIndex].id}-${rIndex}`);
+        if (scoreInput && scoreInput.value !== value) {
+            scoreInput.value = value;
+        }
         document.getElementById(`total-${sets[setIndex].id}`).innerText = `計 ${total} 点`;
     }
 
@@ -392,7 +456,7 @@
                 roundsHtml += `
                     <div class="round-box">
                         <div class="round-title">R${i+1}</div>
-                        <input type="number" class="score-input" value="${set.scores[i]}" oninput="updateScore(${realIndex}, ${i}, this.value)" inputmode="numeric">
+                        <input type="text" id="input-${set.id}-${i}" class="score-input" value="${set.scores[i]}" maxlength="5" oninput="updateScore(${realIndex}, ${i}, this.value)" inputmode="numeric" placeholder="77777">
                     </div>
                 `;
             }
