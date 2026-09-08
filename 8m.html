@@ -397,11 +397,9 @@
         }
     }
 
-    // 入力制御：5桁（5本）制限 ＆ 各数字を足し算
     function updateScore(setIndex, rIndex, element) {
         let val = element.value;
 
-        // 5桁を超えたら強制カット
         if (val.length > 5) {
             val = val.slice(0, 5);
             element.value = val;
@@ -449,7 +447,7 @@
                 roundsHtml += `
                     <div class="round-box">
                         <div class="round-title">R${i+1}</div>
-                        <input type="text" id="input-${set.id}-${i}" class="score-input" value="${set.scores[i]}" maxlength="5" oninput="updateScore(${realIndex}, ${i}, this)" inputmode="numeric" placeholder="77777">
+                        <input type="text" id="input-${set.id}-${i}" class="score-input" value="${set.scores[i] || ''}" maxlength="5" oninput="updateScore(${realIndex}, ${i}, this)" inputmode="numeric">
                     </div>
                 `;
             }
