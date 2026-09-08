@@ -224,6 +224,17 @@
 <script>
     let timerInterval = null, timeLeft = 180, isRunning = false;
 
+    // 音声読み上げ機能
+    function speakText(text) {
+        if ('speechSynthesis' in window) {
+            window.speechSynthesis.cancel(); // 前の音声をクリア
+            const uttr = new SpeechSynthesisUtterance(text);
+            uttr.lang = 'ja-JP';
+            uttr.rate = 1.0;
+            window.speechSynthesis.speak(uttr);
+        }
+    }
+
     function updateTimerDisplay() {
         const m = String(Math.floor(timeLeft / 60)).padStart(2, '0');
         const s = String(timeLeft % 60).padStart(2, '0');
@@ -235,10 +246,20 @@
         if (isRunning) {
             clearInterval(timerInterval); isRunning = false; btn.innerText = '再開';
         } else {
+            // スマホでの音声再生制限を解除するために無音で1度呼び出す
+            speakText('');
             isRunning = true; btn.innerText = '一時停止';
             timerInterval = setInterval(() => {
-                if (timeLeft > 0) { timeLeft--; updateTimerDisplay(); }
-                else { clearInterval(timerInterval); isRunning = false; btn.innerText = '開始'; showAlert('時間終了', '3分が経過しました！'); }
+                if (timeLeft > 0) {
+                    timeLeft--;
+                    updateTimerDisplay();
+                } else {
+                    clearInterval(timerInterval);
+                    isRunning = false;
+                    btn.innerText = '開始';
+                    speakText('3分が経過しました');
+                    showAlert('時間終了', '3分が経過しました！');
+                }
             }, 1000);
         }
     }
@@ -330,12 +351,16 @@
         }
     }
 
+    // 数字列（例: "77777"）を1桁ずつバラバラにして合計する計算ロジック
     function updateScore(setIndex, rIndex, value) {
         sets[setIndex].scores[rIndex] = value;
         let total = 0;
         sets[setIndex].scores.forEach(v => {
-            const num = parseInt(v, 10);
-            if (!isNaN(num)) total += num;
+            const str = String(v);
+            for (let i = 0; i < str.length; i++) {
+                const num = parseInt(str[i], 10);
+                if (!isNaN(num)) total += num;
+            }
         });
         sets[setIndex].total = total;
         saveData();
