@@ -10,7 +10,7 @@
             --card-bg: #ffffff;
             --text-main: #2c3e50;
             --text-sub: #7f8c8d;
-            --primary: #d9381e;
+            --primary: #16a085; /* 10m用テーマカラー */
             --secondary: #2980b9;
             --border: #e2e8f0;
         }
@@ -51,7 +51,8 @@
 
         .timer-card h2 { margin: 0; font-size: 0.85rem; color: #bdc3c7; }
         .timer-display { font-size: 2.5rem; font-weight: bold; font-family: monospace; margin: 2px 0 6px 0; letter-spacing: 2px; }
-        .timer-controls { display: flex; gap: 8px; }
+        .timer-status { font-size: 0.85rem; color: #f1c40f; min-height: 1.2em; font-weight: bold; }
+        .timer-controls { display: flex; gap: 8px; margin-top: 4px; }
         .btn-timer { flex: 1; padding: 8px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 0.9rem; }
         .btn-start { background: #ffffff; color: #2c3e50; }
         .btn-reset { background: rgba(255,255,255,0.2); color: #ffffff; }
@@ -85,7 +86,7 @@
             font-weight: bold;
             cursor: pointer;
             margin-bottom: 10px;
-            box-shadow: 0 4px 6px rgba(217, 56, 30, 0.3);
+            box-shadow: 0 4px 6px rgba(22, 160, 133, 0.3);
         }
 
         .card {
@@ -134,8 +135,9 @@
             text-align: center;
             border: 1px solid #cbd5e1;
             border-radius: 6px;
-            background: #fff;
+            background: #ffffff;
             color: var(--text-main);
+            letter-spacing: 1px;
         }
 
         .check-group {
@@ -196,6 +198,7 @@
     <div class="timer-card">
         <h2>競技用タイマー (3分)</h2>
         <div class="timer-display" id="timerDisplay">03:00</div>
+        <div class="timer-status" id="timerStatus"></div>
         <div class="timer-controls">
             <button class="btn-timer btn-start" id="timerStartBtn" onclick="toggleTimer()">開始</button>
             <button class="btn-timer btn-reset" onclick="resetTimer()">リセット</button>
@@ -222,7 +225,19 @@
 </div>
 
 <script>
-    let timerInterval = null, timeLeft = 180, isRunning = false;
+    let timerInterval = null, prepInterval = null;
+    let timeLeft = 180, prepTime = 3;
+    let isRunning = false, isPrep = false;
+
+    function speakText(text) {
+        if ('speechSynthesis' in window) {
+            window.speechSynthesis.cancel();
+            const uttr = new SpeechSynthesisUtterance(text);
+            uttr.lang = 'ja-JP';
+            uttr.rate = 1.0;
+            window.speechSynthesis.speak(uttr);
+        }
+    }
 
     function updateTimerDisplay() {
         const m = String(Math.floor(timeLeft / 60)).padStart(2, '0');
@@ -232,20 +247,72 @@
 
     function toggleTimer() {
         const btn = document.getElementById('timerStartBtn');
-        if (isRunning) {
-            clearInterval(timerInterval); isRunning = false; btn.innerText = '再開';
+        const status = document.getElementById('timerStatus');
+
+        if (isRunning || isPrep) {
+            clearInterval(prepInterval);
+            clearInterval(timerInterval);
+            isRunning = false;
+            isPrep = false;
+            btn.innerText = '再開';
+            status.innerText = '一時停止中';
         } else {
-            isRunning = true; btn.innerText = '一時停止';
-            timerInterval = setInterval(() => {
-                if (timeLeft > 0) { timeLeft--; updateTimerDisplay(); }
-                else { clearInterval(timerInterval); isRunning = false; btn.innerText = '開始'; showAlert('時間終了', '3分が経過しました！'); }
-            }, 1000);
+            btn.innerText = '一時停止';
+            
+            if (timeLeft === 180 && prepTime === 3) {
+                isPrep = true;
+                status.innerText = '用意...';
+                speakText('用意');
+
+                prepInterval = setInterval(() => {
+                    prepTime--;
+                    if (prepTime <= 0) {
+                        clearInterval(prepInterval);
+                        isPrep = false;
+                        startMainTimer();
+                    }
+                }, 1000);
+            } else {
+                startMainTimer();
+            }
         }
     }
 
+    function startMainTimer() {
+        const status = document.getElementById('timerStatus');
+        isRunning = true;
+        status.innerText = '競技中';
+        speakText('はじめ');
+
+        timerInterval = setInterval(() => {
+            if (timeLeft > 0) {
+                timeLeft--;
+                updateTimerDisplay();
+
+                if (timeLeft === 30) {
+                    speakText('30秒前');
+                }
+            } else {
+                clearInterval(timerInterval);
+                isRunning = false;
+                document.getElementById('timerStartBtn').innerText = '開始';
+                status.innerText = '終了';
+                speakText('終了');
+                showAlert('時間終了', '競技時間が終了しました！');
+            }
+        }, 1000);
+    }
+
     function resetTimer() {
-        clearInterval(timerInterval); isRunning = false; timeLeft = 180;
-        document.getElementById('timerStartBtn').innerText = '開始'; updateTimerDisplay();
+        clearInterval(prepInterval);
+        clearInterval(timerInterval);
+        isRunning = false;
+        isPrep = false;
+        timeLeft = 180;
+        prepTime = 3;
+        document.getElementById('timerStartBtn').innerText = '開始';
+        document.getElementById('timerStatus').innerText = '';
+        updateTimerDisplay();
     }
 
     function showAlert(title, msg) {
@@ -311,9 +378,9 @@
         const newSet = {
             id: nextId,
             time: timeStr,
-            scores: ['', '', '', '', '', ''],
+            scores: ["", "", "", "", "", ""],
             checks: { ten: false, chuu: false, shun: false },
-            memo: '',
+            memo: "",
             total: 0
         };
         sets.push(newSet);
@@ -330,15 +397,28 @@
         }
     }
 
-    function updateScore(setIndex, rIndex, value) {
-        sets[setIndex].scores[rIndex] = value;
+    function updateScore(setIndex, rIndex, element) {
+        let val = element.value;
+
+        if (val.length > 5) {
+            val = val.slice(0, 5);
+            element.value = val;
+        }
+
+        sets[setIndex].scores[rIndex] = val;
+
         let total = 0;
         sets[setIndex].scores.forEach(v => {
-            const num = parseInt(v, 10);
-            if (!isNaN(num)) total += num;
+            const str = String(v);
+            for (let i = 0; i < str.length; i++) {
+                const num = parseInt(str[i], 10);
+                if (!isNaN(num)) total += num;
+            }
         });
+
         sets[setIndex].total = total;
         saveData();
+
         document.getElementById(`total-${sets[setIndex].id}`).innerText = `計 ${total} 点`;
     }
 
@@ -364,10 +444,11 @@
 
             let roundsHtml = '';
             for(let i=0; i<6; i++) {
+                const val = set.scores[i] !== undefined ? set.scores[i] : '';
                 roundsHtml += `
                     <div class="round-box">
                         <div class="round-title">R${i+1}</div>
-                        <input type="number" class="score-input" value="${set.scores[i]}" oninput="updateScore(${realIndex}, ${i}, this.value)" inputmode="numeric">
+                        <input type="text" id="input-${set.id}-${i}" class="score-input" value="${val}" maxlength="5" oninput="updateScore(${realIndex}, ${i}, this)" inputmode="numeric" autocomplete="off">
                     </div>
                 `;
             }
