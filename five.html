@@ -16,12 +16,16 @@
             --border: #e2e8f0;
         }
 
+        * {
+            box-sizing: border-box;
+        }
+
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
             background-color: var(--bg-color);
             color: var(--text-main);
             margin: 0;
-            padding: 12px;
+            padding: 8px;
             display: flex;
             justify-content: center;
         }
@@ -29,18 +33,17 @@
         .container {
             width: 100%;
             max-width: 480px;
-            box-sizing: border-box;
         }
 
         .app-header {
             text-align: center;
-            margin-bottom: 12px;
+            margin-bottom: 10px;
         }
 
         .app-header h1 {
             margin: 0;
-            font-size: 1.8rem;
-            letter-spacing: 2px;
+            font-size: 1.5rem;
+            letter-spacing: 1px;
             color: #1a252f;
         }
 
@@ -48,25 +51,25 @@
             background: #2c3e50;
             color: #ffffff;
             border-radius: 12px;
-            padding: 12px;
+            padding: 10px;
             text-align: center;
-            margin-bottom: 12px;
+            margin-bottom: 10px;
             box-shadow: 0 4px 6px rgba(0,0,0,0.1);
         }
 
         .timer-card h2 {
-            margin: 0 0 4px 0;
-            font-size: 0.95rem;
+            margin: 0 0 2px 0;
+            font-size: 0.85rem;
             font-weight: normal;
             color: #bdc3c7;
         }
 
         .timer-display {
-            font-size: 3rem;
+            font-size: 2.5rem;
             font-weight: bold;
             font-family: monospace;
             letter-spacing: 2px;
-            margin: 4px 0 8px 0;
+            margin: 2px 0 6px 0;
         }
 
         .timer-controls {
@@ -79,7 +82,7 @@
             padding: 8px;
             border: none;
             border-radius: 6px;
-            font-size: 0.95rem;
+            font-size: 0.9rem;
             font-weight: bold;
             cursor: pointer;
         }
@@ -90,16 +93,16 @@
         .analysis-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 8px;
-            margin-bottom: 12px;
+            gap: 6px;
+            margin-bottom: 10px;
         }
 
         .btn-analysis {
             background: var(--card-bg);
             border: 1px solid var(--border);
-            padding: 10px;
+            padding: 8px;
             border-radius: 8px;
-            font-size: 0.85rem;
+            font-size: 0.8rem;
             font-weight: bold;
             color: var(--text-main);
             cursor: pointer;
@@ -115,22 +118,23 @@
             background: var(--primary);
             color: white;
             border: none;
-            padding: 14px;
+            padding: 12px;
             border-radius: 10px;
-            font-size: 1.1rem;
+            font-size: 1rem;
             font-weight: bold;
             cursor: pointer;
             box-shadow: 0 4px 6px rgba(217, 56, 30, 0.3);
-            margin-bottom: 12px;
+            margin-bottom: 10px;
         }
 
         .card {
             background: var(--card-bg);
             border-radius: 12px;
-            padding: 12px;
-            margin-bottom: 12px;
+            padding: 8px;
+            margin-bottom: 10px;
             box-shadow: 0 2px 4px rgba(0,0,0,0.05);
             border: 1px solid var(--border);
+            overflow-x: hidden;
         }
 
         .card-header {
@@ -138,12 +142,12 @@
             justify-content: space-between;
             align-items: center;
             border-bottom: 1px solid var(--border);
-            padding-bottom: 6px;
-            margin-bottom: 8px;
+            padding-bottom: 4px;
+            margin-bottom: 6px;
         }
 
         .card-title {
-            font-size: 1rem;
+            font-size: 0.95rem;
             font-weight: bold;
             color: var(--primary);
         }
@@ -154,6 +158,7 @@
             font-size: 1.1rem;
             color: var(--text-sub);
             cursor: pointer;
+            padding: 0 4px;
         }
 
         .round-row {
@@ -161,54 +166,68 @@
             align-items: center;
             justify-content: space-between;
             margin-bottom: 6px;
-            font-size: 0.85rem;
+            gap: 2px;
         }
 
         .round-label {
             font-weight: bold;
-            width: 28px;
+            font-size: 0.75rem;
+            width: 20px;
+            flex-shrink: 0;
         }
 
-        .score-buttons {
+        .arrows-container {
             display: flex;
-            gap: 4px;
+            gap: 2px;
+            flex: 1;
+            justify-content: space-between;
+        }
+
+        .arrow-group {
+            display: flex;
+            gap: 1px;
+            background: #f1f5f9;
+            padding: 1px;
+            border-radius: 4px;
         }
 
         .btn-score {
-            width: 28px;
-            height: 28px;
-            border-radius: 50%;
-            border: 1px solid var(--border);
-            background: #fff;
+            width: 20px;
+            height: 24px;
+            border-radius: 3px;
+            border: none;
+            background: transparent;
             font-weight: bold;
-            font-size: 0.8rem;
+            font-size: 0.7rem;
             cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
             padding: 0;
+            color: #475569;
         }
 
         .btn-score.active {
             background: var(--text-main);
             color: #fff;
-            border-color: var(--text-main);
         }
 
         .round-total {
-            width: 32px;
+            width: 24px;
             text-align: right;
             font-weight: bold;
+            font-size: 0.85rem;
             color: var(--secondary);
+            flex-shrink: 0;
         }
 
         .set-total-box {
             background: #f8fafc;
             border-radius: 6px;
-            padding: 8px;
+            padding: 6px;
             text-align: center;
-            margin-top: 8px;
-            font-size: 0.95rem;
+            margin-top: 6px;
+            font-size: 0.9rem;
             font-weight: bold;
             border: 2px solid var(--primary);
             color: var(--primary);
@@ -346,198 +365,4 @@
         clearInterval(timerInterval);
         isRunning = false;
         timeLeft = 180;
-        document.getElementById('timerStartBtn').innerText = '開始';
-        updateTimerDisplay();
-    }
-
-    function showAlert(title, msg) {
-        document.getElementById('alertTitle').innerText = title;
-        document.getElementById('alertMessage').innerHTML = msg;
-        document.getElementById('overlay').style.display = 'block';
-        document.getElementById('customAlert').style.display = 'block';
-    }
-
-    function closeAlert() {
-        document.getElementById('overlay').style.display = 'none';
-        document.getElementById('customAlert').style.display = 'none';
-    }
-
-    // --- データ管理（ファイブ的専用キー） ---
-    const STORAGE_KEY = 'fukiya_sets_five';
-    let sets = [];
-
-    try {
-        const raw = localStorage.getItem(STORAGE_KEY);
-        if (raw) sets = JSON.parse(raw);
-    } catch(e) {
-        sets = [];
-    }
-
-    function save() {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(sets));
-    }
-
-    function runAnalysis(type) {
-        let filtered = sets.filter(s => s.total > 0);
-        const now = new Date();
-        if (type === 'month') {
-            const currentMonth = `${now.getFullYear()}/${now.getMonth() + 1}`;
-            filtered = filtered.filter(s => s.time.startsWith(currentMonth));
-        } else if (type === 'year') {
-            const currentYear = `${now.getFullYear()}/`;
-            filtered = filtered.filter(s => s.time.startsWith(currentYear));
-        } else if (type === 'recent') {
-            filtered = filtered.slice(-10);
-        }
-
-        if (filtered.length === 0) {
-            showAlert('成績データ', '該当する完了データがありません。');
-            return;
-        }
-
-        let html = '';
-        let grandTotal = 0;
-
-        if (type === 'all') {
-            html = '<div style="max-height: 250px; overflow-y: auto;">';
-            [...filtered].reverse().forEach(s => {
-                html += `<div class="history-item">
-                    <strong>第${s.id}セット</strong> (${s.time})<br>
-                    合計: <strong>${s.total}点</strong>
-                </div>`;
-            });
-            html += '</div>';
-            showAlert('全履歴確認', html);
-        } else {
-            const count = filtered.length;
-            filtered.forEach(s => grandTotal += s.total);
-            const avg = (grandTotal / count).toFixed(1);
-            const titleMap = { 'recent': '直近10セット', 'month': '今月の成績', 'year': '今年の成績' };
-            
-            html = `
-                集計セット数: <strong>${count}セット</strong><br>
-                合計得点: <strong>${grandTotal}点</strong><br>
-                平均得点: <strong>${avg}点</strong>
-            `;
-            showAlert(titleMap[type], html);
-        }
-    }
-
-    function startNewSet() {
-        const nextId = sets.length + 1;
-        const now = new Date();
-        const timeStr = `${now.getFullYear()}/${now.getMonth()+1}/${now.getDate()} ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
-        
-        const newSet = {
-            id: nextId,
-            time: timeStr,
-            scores: [
-                [0,0,0,0,0],
-                [0,0,0,0,0],
-                [0,0,0,0,0],
-                [0,0,0,0,0],
-                [0,0,0,0,0],
-                [0,0,0,0,0]
-            ],
-            total: 0
-        };
-        sets.push(newSet);
-        save();
-        render();
-    }
-
-    function deleteSet(index) {
-        if (confirm('このセットを削除しますか？')) {
-            sets.splice(index, 1);
-            sets.forEach((s, i) => s.id = i + 1);
-            save();
-            render();
-        }
-    }
-
-    function setScore(setIndex, rIndex, aIndex, score) {
-        sets[setIndex].scores[rIndex][aIndex] = score;
-        let setTotal = 0;
-        sets[setIndex].scores.forEach(r => {
-            r.forEach(s => setTotal += s);
-        });
-        sets[setIndex].total = setTotal;
-        save();
-        render();
-    }
-
-    function render() {
-        const area = document.getElementById('cardsArea');
-        area.innerHTML = '';
-
-        if (sets.length === 0) {
-            return;
-        }
-
-        [...sets].reverse().forEach((set) => {
-            const realIndex = sets.findIndex(s => s.id === set.id);
-            const isLatest = (realIndex === sets.length - 1);
-
-            const card = document.createElement('div');
-            card.className = `card ${isLatest ? 'active-set-border' : ''}`;
-
-            let cardHtml = `
-                <div class="card-header">
-                    <div class="card-title">第${set.id}セット <span style="font-size:0.75rem; color:var(--text-sub); font-weight:normal;">(${set.time})</span></div>
-                    <button class="btn-close" onclick="deleteSet(${realIndex})">×</button>
-                </div>
-            `;
-
-            set.scores.forEach((round, rIndex) => {
-                let rTotal = round.reduce((a, b) => a + b, 0);
-                cardHtml += `
-                    <div class="round-row">
-                        <span class="round-label">R${rIndex + 1}</span>
-                        <div class="score-buttons">
-                `;
-
-                round.forEach((score, aIndex) => {
-                    const options = [7, 5, 3, 1, 0];
-                    cardHtml += `<div style="display:flex; gap:1px;">`;
-                    options.forEach(opt => {
-                        const active = (score === opt) ? 'active' : '';
-                        cardHtml += `<button class="btn-score ${active}" onclick="setScore(${realIndex}, ${rIndex}, ${aIndex}, ${opt})">${opt}</button>`;
-                    });
-                    cardHtml += `</div>`;
-                });
-
-                cardHtml += `
-                        </div>
-                        <span class="round-total">${rTotal}</span>
-                    </div>
-                `;
-            });
-
-            cardHtml += `
-                <div class="set-total-box">
-                    セット合計: ${set.total} 点
-                </div>
-            `;
-
-            card.innerHTML = cardHtml;
-            area.appendChild(card);
-        });
-    }
-
-    // 初期化時に画面を描画
-    render();
-</script>
-
-</body>
-</html>          
-
-       
-         
-       
-      
-        
-       
-
-    
-      
-          
+        document.getEleme
