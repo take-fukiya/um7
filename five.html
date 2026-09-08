@@ -210,7 +210,6 @@
             margin-top: 8px;
             font-size: 0.95rem;
             font-weight: bold;
-
             border: 2px solid var(--primary);
             color: var(--primary);
         }
@@ -310,9 +309,8 @@
 </div>
 
 <script>
-    // --- 競技用タイマー機能 ---
     let timerInterval = null;
-    let timeLeft = 180; // 3分 = 180秒
+    let timeLeft = 180;
     let isRunning = false;
 
     function updateTimerDisplay() {
@@ -352,9 +350,183 @@
         updateTimerDisplay();
     }
 
-    // --- モーダル表示機能 ---
     function showAlert(title, msg) {
         document.getElementById('alertTitle').innerText = title;
         document.getElementById('alertMessage').innerHTML = msg;
         document.getElementById('overlay').style.display = 'block';
-        document.getElementById
+        document.getElementById('customAlert').style.display = 'block';
+    }
+
+    function closeAlert() {
+        document.getElementById('overlay').style.display = 'none';
+        document.getElementById('customAlert').style.display = 'none';
+    }
+
+    // --- データ管理（ファイブ的専用キー） ---
+    const STORAGE_KEY = 'fukiya_sets_five';
+    let sets = [];
+
+    try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (raw) sets = JSON.parse(raw);
+    } catch(e) {
+        sets = [];
+    }
+
+    function save() {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(sets));
+    }
+
+    function runAnalysis(type) {
+        let filtered = sets.filter(s => s.total > 0);
+        const now = new Date();
+        if (type === 'month') {
+            const currentMonth = `${now.getFullYear()}/${now.getMonth() + 1}`;
+            filtered = filtered.filter(s => s.time.startsWith(currentMonth));
+        } else if (type === 'year') {
+            const currentYear = `${now.getFullYear()}/`;
+            filtered = filtered.filter(s => s.time.startsWith(currentYear));
+        } else if (type === 'recent') {
+            filtered = filtered.slice(-10);
+        }
+
+        if (filtered.length === 0) {
+            showAlert('成績データ', '該当する完了データがありません。');
+            return;
+        }
+
+        let html = '';
+        let grandTotal = 0;
+
+        if (type === 'all') {
+            html = '<div style="max-height: 250px; overflow-y: auto;">';
+            [...filtered].reverse().forEach(s => {
+                html += `<div class="history-item">
+                    <strong>第${s.id}セット</strong> (${s.time})<br>
+                    合計: <strong>${s.total}点</strong>
+                </div>`;
+            });
+            html += '</div>';
+            showAlert('全履歴確認', html);
+        } else {
+            const count = filtered.length;
+            filtered.forEach(s => grandTotal += s.total);
+            const avg = (grandTotal / count).toFixed(1);
+            const titleMap = { 'recent': '直近10セット', 'month': '今月の成績', 'year': '今年の成績' };
+            
+            html = `
+                集計セット数: <strong>${count}セット</strong><br>
+                合計得点: <strong>${grandTotal}点</strong><br>
+                平均得点: <strong>${avg}点</strong>
+            `;
+            showAlert(titleMap[type], html);
+        }
+    }
+
+    function startNewSet() {
+        const nextId = sets.length + 1;
+        const now = new Date();
+        const timeStr = `${now.getFullYear()}/${now.getMonth()+1}/${now.getDate()} ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+        
+        const newSet = {
+            id: nextId,
+            time: timeStr,
+            scores: [
+                [0,0,0,0,0],
+                [0,0,0,0,0],
+                [0,0,0,0,0],
+                [0,0,0,0,0],
+                [0,0,0,0,0],
+                [0,0,0,0,0]
+            ],
+            total: 0
+        };
+        sets.push(newSet);
+        save();
+        render();
+    }
+
+    function deleteSet(index) {
+        if (confirm('このセットを削除しますか？')) {
+            sets.splice(index, 1);
+            sets.forEach((s, i) => s.id = i + 1);
+            save();
+            render();
+        }
+    }
+
+    function setScore(setIndex, rIndex, aIndex, score) {
+        sets[setIndex].scores[rIndex][aIndex] = score;
+        let setTotal = 0;
+        sets[setIndex].scores.forEach(r => {
+            r.forEach(s => setTotal += s);
+        });
+        sets[setIndex].total = setTotal;
+        save();
+        render();
+    }
+
+    function render() {
+        const area = document.getElementById('cardsArea');
+        area.innerHTML = '';
+
+        if (sets.length === 0) {
+            return;
+        }
+
+        [...sets].reverse().forEach((set) => {
+            const realIndex = sets.findIndex(s => s.id === set.id);
+            const isLatest = (realIndex === sets.length - 1);
+
+            const card = document.createElement('div');
+            card.className = `card ${isLatest ? 'active-set-border' : ''}`;
+
+            let cardHtml = `
+                <div class="card-header">
+                    <div class="card-title">第${set.id}セット <span style="font-size:0.75rem; color:var(--text-sub); font-weight:normal;">(${set.time})</span></div>
+                    <button class="btn-close" onclick="deleteSet(${realIndex})">×</button>
+                </div>
+            `;
+
+            set.scores.forEach((round, rIndex) => {
+                let rTotal = round.reduce((a, b) => a + b, 0);
+                cardHtml += `
+                    <div class="round-row">
+                        <span class="round-label">R${rIndex + 1}</span>
+                        <div class="score-buttons">
+                `;
+
+                round.forEach((score, aIndex) => {
+                    const options = [7, 5, 3, 1, 0];
+                    cardHtml += `<div style="display:flex; gap:1px;">`;
+                    options.forEach(opt => {
+                        const active = (score === opt) ? 'active' : '';
+                        cardHtml += `<button class="btn-score ${active}" onclick="setScore(${realIndex}, ${rIndex}, ${aIndex}, ${opt})">${opt}</button>`;
+                    });
+                    cardHtml += `</div>`;
+                });
+
+                cardHtml += `
+                        </div>
+                        <span class="round-total">${rTotal}</span>
+                    </div>
+                `;
+            });
+
+            cardHtml += `
+                <div class="set-total-box">
+                    セット合計: ${set.total} 点
+                </div>
+            `;
+
+            card.innerHTML = cardHtml;
+            area.appendChild(card);
+        });
+    }
+
+    // 初期化時に画面を描画
+    render();
+</script>
+
+</body>
+</html>
