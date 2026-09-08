@@ -1,1 +1,200 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TAKE-UM7 吹矢修練記録 (ファイブ的)</title>
+    <style>
+        body { font-family: 'Hiragino Kaku Gothic ProN', sans-serif; background-color: #f0f4f8; padding: 10px; color: #333; }
+        .container { max-width: 600px; margin: auto; }
+        .timer-section { background: #2c3e50; color: white; border-radius: 12px; padding: 15px; margin-bottom: 20px; text-align: center; box-shadow: 0 4px 10px rgba(0,0,0,0.2); }
+        .timer-display { font-size: 3.5rem; font-weight: bold; font-family: monospace; margin: 10px 0; }
+        .timer-btns { display: flex; gap: 10px; justify-content: center; }
+        .btn-timer { background: #fff; color: #2c3e50; border: none; padding: 10px 20px; border-radius: 6px; font-weight: bold; cursor: pointer; flex: 1; }
+        .btn-timer:active { background: #ddd; }
+        .analysis-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; }
+        .btn-analysis { background: white; border: 1px solid #ccc; padding: 12px; border-radius: 10px; font-size: 0.9em; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 5px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+        .btn-analysis:active { background: #f0f0f0; }
+        
+        #customAlert { display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); z-index: 1000; width: 85%; max-width: 400px; text-align: center; padding: 20px; border: 2px solid #0056b3; }
+        #customAlert h3 { margin-top: 0; color: #0056b3; border-bottom: 2px solid #f0f4f8; padding-bottom: 10px; }
+        #alertMessage { margin: 20px 0; line-height: 1.6; font-weight: bold; white-space: pre-wrap; }
+        #alertClose { background: #0056b3; color: white; border: none; padding: 10px 30px; border-radius: 8px; font-weight: bold; cursor: pointer; }
+        #overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 999; }
 
+        .set-container { background: white; border: 2px solid #0056b3; border-radius: 12px; padding: 15px; margin-bottom: 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); position: relative; }
+        .latest { border-color: #d32f2f; background-color: #fff9f9; }
+        h2 { margin-top: 0; color: #0056b3; font-size: 1.1em; border-bottom: 1px solid #eee; padding-bottom: 5px; padding-right: 30px; }
+        .latest h2 { color: #d32f2f; }
+        .score-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 10px; }
+        .score-input { width: 100%; height: 45px; font-size: 18px; text-align: center; border-radius: 6px; border: 1px solid #ccc; box-sizing: border-box; letter-spacing: 2px; }
+        .check-group { margin-top: 10px; display: flex; gap: 15px; font-size: 0.9em; font-weight: bold; }
+        .total-display { font-weight: bold; font-size: 1.4em; color: #d32f2f; display: block; margin-top: 12px; text-align: right; }
+        .memo-area { width: 100%; margin-top: 10px; padding: 10px; border-radius: 6px; border: 1px solid #ccc; box-sizing: border-box; font-size: 15px; background: #fafafa; }
+        .btn-add { background: #d32f2f; color: white; padding: 16px; border: none; border-radius: 8px; width: 100%; font-size: 1.2em; font-weight: bold; cursor: pointer; margin-bottom: 20px; box-shadow: 0 4px 0 #a31f1f; }
+        .btn-add:active { transform: translateY(2px); box-shadow: 0 2px 0 #a31f1f; }
+        .del-btn { position: absolute; top: 10px; right: 10px; background: none; border: none; color: #ccc; cursor: pointer; font-size: 1.2em; }
+    </style>
+</head>
+<body>
+    <div id="overlay"></div>
+    <div id="customAlert">
+        <h3>がんばっている足跡</h3>
+        <div id="alertMessage"></div>
+        <button id="alertClose" onclick="closeAlert()">確認</button>
+    </div>
+
+    <div class="container">
+        <h1 style="text-align: center; color: #333;">TAKE-UM7 (ファイブ的)</h1>
+
+        <div class="timer-section">
+            <div id="timerStatus" style="font-size: 0.9rem; color: #bdc3c7;">競技用タイマー (3分)</div>
+            <div id="timerDisplay" class="timer-display">03:00</div>
+            <div class="timer-btns">
+                <button class="btn-timer" id="timerActionBtn" onclick="startTimerSequence()">開始</button>
+                <button class="btn-timer" onclick="resetTimer()">リセット</button>
+            </div>
+        </div>
+
+        <div class="analysis-grid">
+            <button class="btn-analysis" onclick="runAnalysis('recent')">📊 直近10セット</button>
+            <button class="btn-analysis" onclick="runAnalysis('month')">📅 今月の成績</button>
+            <button class="btn-analysis" onclick="runAnalysis('year')">🏆 今年の成績</button>
+            <button class="btn-analysis" onclick="showHistory()">📝 全履歴確認</button>
+        </div>
+
+        <button class="btn-add" onclick="addNewSet()">新しい修練セットを開始</button>
+        <div id="records-root"></div>
+    </div>
+
+    <script>
+        let timeLeft = 180;
+        let timerId = null;
+        function speak(text) { const uttr = new SpeechSynthesisUtterance(text); uttr.lang = 'ja-JP'; window.speechSynthesis.speak(uttr); }
+        async function startTimerSequence() {
+            if (timerId !== null) return;
+            const status = document.getElementById('timerStatus');
+            const btn = document.getElementById('timerActionBtn');
+            btn.disabled = true; status.innerText = "3秒前...";
+            await new Promise(r => setTimeout(r, 3000));
+            speak("用意"); status.innerText = "用意...";
+            await new Promise(r => setTimeout(r, 2000));
+            speak("はじめ"); status.innerText = "競技中！";
+            btn.disabled = false; btn.innerText = "停止"; btn.onclick = toggleTimer;
+            runTimer();
+        }
+        function runTimer() {
+            timerId = setInterval(() => {
+                if (timeLeft > 0) { timeLeft--; updateTimerDisplay(); if (timeLeft === 30) speak("30秒前"); }
+                else { clearInterval(timerId); timerId = null; speak("終了"); document.getElementById('timerStatus').innerText = "競技終了"; }
+            }, 1000);
+        }
+        function toggleTimer() {
+            const btn = document.getElementById('timerActionBtn');
+            if (timerId) { clearInterval(timerId); timerId = null; btn.innerText = "再開"; }
+            else { btn.innerText = "停止"; runTimer(); }
+        }
+        function resetTimer() {
+            clearInterval(timerId); timerId = null; timeLeft = 180; updateTimerDisplay();
+            const btn = document.getElementById('timerActionBtn');
+            btn.innerText = "開始"; btn.disabled = false; btn.onclick = startTimerSequence;
+            document.getElementById('timerStatus').innerText = "競技用タイマー (3分)";
+        }
+        function updateTimerDisplay() {
+            const m = Math.floor(timeLeft / 60); const s = timeLeft % 60;
+            document.getElementById('timerDisplay').innerText = `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+        }
+
+        function showAlert(msg) {
+            document.getElementById('alertMessage').innerText = msg;
+            document.getElementById('overlay').style.display = 'block';
+            document.getElementById('customAlert').style.display = 'block';
+        }
+        function closeAlert() {
+            document.getElementById('overlay').style.display = 'none';
+            document.getElementById('customAlert').style.display = 'none';
+        }
+
+        // 保存キーのみ "fukiya_sets_five" に分けました！
+        let sets = JSON.parse(localStorage.getItem('fukiya_sets_five') || '[]');
+        function save() { localStorage.setItem('fukiya_sets_five', JSON.stringify(sets)); }
+
+        function runAnalysis(type) {
+            let filtered = sets.filter(s => s.total > 0);
+            const now = new Date();
+            if (type === 'month') {
+                const currentMonth = `${now.getFullYear()}/${now.getMonth() + 1}`;
+                filtered = filtered.filter(s => s.time.startsWith(currentMonth));
+            } else if (type === 'year') {
+                const currentYear = `${now.getFullYear()}/`;
+                filtered = filtered.filter(s => s.time.startsWith(currentYear));
+            } else if (type === 'recent') {
+                filtered = filtered.slice(0, 10);
+            }
+            if (filtered.length === 0) { showAlert("集計対象となるデータがありません。"); return; }
+            const scores = filtered.map(s => s.total);
+            const max = Math.max(...scores);
+            const min = Math.min(...scores);
+            const avg = (scores.reduce((a, b) => a + b, 0) / scores.length).toFixed(1);
+            const titles = { recent: '直近10セット', month: '今月の成績', year: '今年の成績' };
+            showAlert(`【${titles[type]}】\n対象数： ${filtered.length} セット\n\n最高： ${max} 点\n平均： ${avg} 点\n最低： ${min} 点`);
+        }
+
+        function showHistory() {
+            const activeSets = sets.filter(s => s.total > 0).length;
+            showAlert(`【全履歴確認】\n累計修練セット数： ${sets.length}\n（有効記録： ${activeSets}）\n\n画面を下にスクロールして確認できます。`);
+        }
+
+        function renderSets() {
+            const root = document.getElementById('records-root');
+            root.innerHTML = '';
+            sets.forEach((set, idx) => {
+                const div = document.createElement('div');
+                div.className = 'set-container' + (idx === 0 ? ' latest' : '');
+                div.innerHTML = `
+                    <button class="del-btn" onclick="deleteSet(${idx})">×</button>
+                    <h2>第${sets.length - idx}セット <span style="font-size:0.8em; color:#888;">(${set.time})</span></h2>
+                    <div class="score-grid">
+                        ${set.scores.map((s, rIdx) => `
+                            <div><label style="font-size:0.7em; color:#666;">R${rIdx+1}</label><br>
+                            <input type="text" inputmode="numeric" class="score-input" value="${s}" oninput="updateScore(${idx}, ${rIdx}, this)"></div>
+                        `).join('')}
+                    </div>
+                    <div class="check-group">
+                        <label><input type="checkbox" ${set.c1?'checked':''} onchange="updateCheck(${idx},'c1',this.checked)"> 点</label>
+                        <label><input type="checkbox" ${set.c2?'checked':''} onchange="updateCheck(${idx},'c2',this.checked)"> 中</label>
+                        <label><input type="checkbox" ${set.c3?'checked':''} onchange="updateCheck(${idx},'c3',this.checked)"> 瞬</label>
+                    </div>
+                    <div class="total-display" id="total-${idx}">計 ${set.total} 点</div>
+                    <textarea class="memo-area" rows="2" placeholder="気づき・メモ" oninput="updateMemo(${idx}, this.value)">${set.memo||''}</textarea>
+                `;
+                root.appendChild(div);
+            });
+        }
+
+        function addNewSet() {
+            const now = new Date();
+            const timeStr = `${now.getFullYear()}/${now.getMonth()+1}/${now.getDate()} ${now.getHours()}:${String(now.getMinutes()).padStart(2,'0')}`;
+            sets.unshift({ time: timeStr, scores: ['', '', '', '', '', ''], total: 0, c1: false, c2: false, c3: false, memo: '' });
+            save(); renderSets();
+        }
+
+        function updateScore(setIdx, rIdx, el) {
+            let val = el.value.replace(/[^0-9]/g, '').slice(0, 5);
+            el.value = val;
+            sets[setIdx].scores[rIdx] = val;
+            let sum = 0;
+            sets[setIdx].scores.forEach(s => { for(let char of s) { let n = parseInt(char); if(!isNaN(n)) sum += n; } });
+            sets[setIdx].total = sum;
+            document.getElementById(`total-${setIdx}`).innerText = `計 ${sum} 点`;
+            save();
+        }
+
+        function updateCheck(idx, key, val) { sets[idx][key] = val; save(); }
+        function updateMemo(idx, val) { sets[idx].memo = val; save(); }
+        function deleteSet(idx) { if(confirm("このセットを削除しますか？")) { sets.splice(idx, 1); save(); renderSets(); } }
+
+        if (sets.length === 0) addNewSet(); else renderSets();
+    </script>
+</body>
+</html>
