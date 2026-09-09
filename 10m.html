@@ -3,15 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TAKE-UM7 (10m)</title>
+    <title>TAKE-UM7 (10m用)</title>
     <style>
         :root {
             --bg-color: #f4f6f8;
             --card-bg: #ffffff;
             --text-main: #2c3e50;
             --text-sub: #7f8c8d;
-            --primary: #16a085;
-            --secondary: #2980b9;
+            --primary: #2980b9; /* 10m用テーマカラー（ブルー） */
             --border: #e2e8f0;
         }
 
@@ -86,7 +85,7 @@
             font-weight: bold;
             cursor: pointer;
             margin-bottom: 10px;
-            box-shadow: 0 4px 6px rgba(22, 160, 133, 0.3);
+            box-shadow: 0 4px 6px rgba(41, 128, 185, 0.3);
         }
 
         .card {
@@ -184,8 +183,8 @@
 
         .modal-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 1000; }
         .modal-content { display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; border-radius: 16px; padding: 20px; width: 85%; max-width: 340px; z-index: 1001; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.2); }
-        .modal-title { font-size: 1.2rem; font-weight: bold; margin-bottom: 12px; color: #0b62a4; border-bottom: none; }
-        .btn-modal-close { width: 100%; padding: 10px; background: #0b62a4; color: white; border: none; border-radius: 8px; margin-top: 16px; cursor: pointer; font-weight: bold; font-size: 0.95rem; }
+        .modal-title { font-size: 1.2rem; font-weight: bold; margin-bottom: 12px; color: var(--primary); border-bottom: none; }
+        .btn-modal-close { width: 100%; padding: 10px; background: var(--primary); color: white; border: none; border-radius: 8px; margin-top: 16px; cursor: pointer; font-weight: bold; font-size: 0.95rem; }
     </style>
 </head>
 <body>
@@ -459,7 +458,7 @@
                 roundsHtml += `
                     <div class="round-box">
                         <div class="round-title">R${i+1}</div>
-                        <input type="text" id="input-${set.id}-${i}" class="score-input" value="${val}" maxlength="5" oninput="updateScore(${realIndex}, ${i}, this)" inputmode="numeric" autocomplete="off">
+                        <input type="tel" id="input-${set.id}-${i}" class="score-input" value="${val}" maxlength="5" oninput="updateScore(${realIndex}, ${i}, this)" inputmode="numeric" autocomplete="off">
                     </div>
                 `;
             }
