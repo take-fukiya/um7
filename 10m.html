@@ -10,7 +10,7 @@
             --card-bg: #ffffff;
             --text-main: #2c3e50;
             --text-sub: #7f8c8d;
-            --primary: #16a085; /* 10m用テーマカラー */
+            --primary: #16a085;
             --secondary: #2980b9;
             --border: #e2e8f0;
         }
@@ -183,9 +183,9 @@
         }
 
         .modal-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 1000; }
-        .modal-content { display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; border-radius: 12px; padding: 16px; width: 85%; max-width: 360px; z-index: 1001; }
-        .modal-title { font-size: 1rem; font-weight: bold; margin-bottom: 8px; border-bottom: 2px solid var(--primary); }
-        .btn-modal-close { width: 100%; padding: 8px; background: var(--text-main); color: white; border: none; border-radius: 6px; margin-top: 8px; cursor: pointer; }
+        .modal-content { display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; border-radius: 16px; padding: 20px; width: 85%; max-width: 340px; z-index: 1001; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.2); }
+        .modal-title { font-size: 1.2rem; font-weight: bold; margin-bottom: 12px; color: #0b62a4; border-bottom: none; }
+        .btn-modal-close { width: 100%; padding: 10px; background: #0b62a4; color: white; border: none; border-radius: 8px; margin-top: 16px; cursor: pointer; font-weight: bold; font-size: 0.95rem; }
     </style>
 </head>
 <body>
@@ -219,9 +219,9 @@
 
 <div class="modal-overlay" id="overlay" onclick="closeAlert()"></div>
 <div class="modal-content" id="customAlert">
-    <div class="modal-title" id="alertTitle">お知らせ</div>
-    <div id="alertMessage" style="font-size:0.85rem; line-height:1.4;"></div>
-    <button class="btn-modal-close" onclick="closeAlert()">閉じる</button>
+    <div class="modal-title" id="alertTitle">がんばっている足跡</div>
+    <div id="alertMessage" style="font-size:0.95rem; line-height:1.6; color:#2c3e50;"></div>
+    <button class="btn-modal-close" onclick="closeAlert()">確認</button>
 </div>
 
 <script>
@@ -349,12 +349,10 @@
             filtered = filtered.slice(-10);
         }
 
-        if (filtered.length === 0) { showAlert('成績データ', '該当する完了データがありません。'); return; }
-
-        let html = '', grandTotal = 0;
+        if (filtered.length === 0) { showAlert('がんばっている足跡', '該当する完了データがありません。'); return; }
 
         if (type === 'all') {
-            html = '<div style="max-height: 200px; overflow-y: auto;">';
+            let html = '<div style="max-height: 200px; overflow-y: auto; text-align: left;">';
             [...filtered].reverse().forEach(s => {
                 html += `<div style="border-bottom:1px solid #eee; padding:4px 0;"><strong>第${s.id}セット</strong> (${s.time})<br>合計: <strong>${s.total}点</strong></div>`;
             });
@@ -362,11 +360,24 @@
             showAlert('全履歴確認', html);
         } else {
             const count = filtered.length;
-            filtered.forEach(s => grandTotal += s.total);
+            const scores = filtered.map(s => s.total);
+            const maxScore = Math.max(...scores);
+            const minScore = Math.min(...scores);
+            const grandTotal = scores.reduce((a, b) => a + b, 0);
             const avg = (grandTotal / count).toFixed(1);
-            const titleMap = { 'recent': '直近10セット', 'month': '今月の成績', 'year': '今年の成績' };
-            html = `集計セット数: <strong>${count}セット</strong><br>合計得点: <strong>${grandTotal}点</strong><br>平均得点: <strong>${avg}点</strong>`;
-            showAlert(titleMap[type], html);
+            
+            const titleMap = { 'recent': '【直近10セット】', 'month': '【今月の成績】', 'year': '【今年の成績】' };
+            
+            const html = `
+                <div style="font-weight: bold; margin-bottom: 8px;">${titleMap[type]}</div>
+                <div style="margin-bottom: 12px;">対象数：${count} セット</div>
+                <div style="font-size: 1.05rem; line-height: 1.8;">
+                    最高： <strong>${maxScore} 点</strong><br>
+                    平均： <strong>${avg} 点</strong><br>
+                    最低： <strong>${minScore} 点</strong>
+                </div>
+            `;
+            showAlert('がんばっている足跡', html);
         }
     }
 
