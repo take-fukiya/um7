@@ -459,7 +459,7 @@
                 roundsHtml += `
                     <div class="round-box">
                         <div class="round-title">R${i+1}</div>
-                        <input type="text" id="input-${set.id}-${i}" class="score-input" value="${val}" maxlength="5" oninput="updateScore(${realIndex}, ${i}, this)" inputmode="numeric" autocomplete="off">
+                        <input type="tel" id="input-${set.id}-${i}" class="score-input" value="${val}" maxlength="5" oninput="updateScore(${realIndex}, ${i}, this)" inputmode="numeric" autocomplete="off">
                     </div>
                 `;
             }
